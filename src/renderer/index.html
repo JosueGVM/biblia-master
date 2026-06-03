@@ -31,6 +31,23 @@
             
             <div id="text-columns-container"></div>
 
+            <!-- BARRA FLOTANTE DE ACCIONES (Aparece al seleccionar versículos) -->
+            <div id="action-toolbar" class="hidden">
+                <div id="selected-info">0 seleccionados</div>
+                <div class="action-buttons">
+                    <button id="action-copy" title="Copiar con referencia">📋</button>
+                    <button id="action-fav" title="Añadir a favoritos">⭐</button>
+                    <button id="action-note" title="Añadir nota">📝</button>
+                    <div class="color-picker">
+                        <button class="btn-color yellow" data-color="#ffd700"></button>
+                        <button class="btn-color green" data-color="#90ee90"></button>
+                        <button class="btn-color pink" data-color="#ffb6c1"></button>
+                        <button class="btn-color-clear" title="Quitar marca">🚫</button>
+                    </div>
+                    <button id="action-cancel">✕</button>
+                </div>
+            </div>
+
             <!-- Panel de Búsqueda -->
             <div id="search-results-container" class="hidden">
                 <div id="search-results-header">

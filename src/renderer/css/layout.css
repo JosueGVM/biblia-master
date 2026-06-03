@@ -120,3 +120,44 @@ body, html { height: 100%; font-family: var(--font-family); overflow: hidden; ba
 .btn-primary { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
 .hidden { display: none !important; }
+
+/* VERSÍCULO SELECCIONADO (CLIC) */
+.verse.selected {
+    background-color: rgba(86, 156, 214, 0.2); /* Azul suave */
+    border-left: 3px solid var(--accent);
+    cursor: pointer;
+}
+
+/* EFECTO HOVER DINÁMICO */
+.verse:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+}
+
+/* BARRA DE ACCIONES FLOTANTE */
+#action-toolbar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-header);
+    border: 1px solid var(--border);
+    padding: 10px 25px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    z-index: 3000;
+}
+
+#selected-info { font-size: 0.8rem; font-weight: bold; color: var(--accent); border-right: 1px solid var(--border); padding-right: 15px; }
+
+.action-buttons { display: flex; gap: 10px; align-items: center; }
+.action-buttons button { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; filter: grayscale(1); transition: 0.2s; }
+.action-buttons button:hover { transform: scale(1.2); filter: grayscale(0); }
+
+.color-picker { display: flex; gap: 5px; margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--border); }
+.btn-color { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+.yellow { background: #ffd700; } .green { background: #90ee90; } .pink { background: #ffb6c1; }
+.btn-color-clear { font-size: 0.9rem !important; }

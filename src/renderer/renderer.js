@@ -2,6 +2,7 @@ let activeVersions = ['RV1960'];
 let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
+let selectedVerses = []; // Array para guardar {version, book, chapter, verse, text}
 
 // Nodos DOM
 const columnsContainer = document.getElementById('text-columns-container');
@@ -32,7 +33,26 @@ async function init() {
 async function loadContent() {
     columnsContainer.innerHTML = "";
     currentTitleLabel.innerText = `${currentBook} ${currentChapter}`;
+
+    // 1. Traer versículos de la Biblia
     const promises = activeVersions.map(v => window.api.getChapter({ version: v, book: currentBook, chapter: currentChapter }));
+    
+    // 2. Traer marcas del usuario
+    const hightlights = await window.api.getHightlights({book: currentBook, chapter: currentChapter });
+    
+    try {
+        const results = await Promise.all(promises);
+        results.forEach((verses, index) => {
+            renderColumn(index, activeVersions[index], verses, hightlights); //Pasamos las marcas
+        });
+
+        updateSidebars(currentBook);
+        setupScrollSync();
+        setupActionEvents(); // Asegurar que los botones de la barra funcionen
+    } catch (err) {
+        console.error(err);
+    }
+
     const results = await Promise.all(promises);
     results.forEach((verses, index) => renderColumn(index, activeVersions[index], verses));
     updateSidebars(currentBook);
@@ -59,15 +79,70 @@ function renderColumn(index, selectedVersion, verses) {
     removeBtn.onclick = () => { if (activeVersions.length > 1) { activeVersions.splice(index, 1); loadContent(); }};
     header.appendChild(select); header.appendChild(removeBtn);
     const body = document.createElement('div');
+    
     verses.forEach(v => {
         const vDiv = document.createElement('div');
         vDiv.classList.add('verse');
+        vDiv.dataset.verse = v.verse_number;
         vDiv.innerHTML = `<span class="verse-number">${v.verse_number}</span>${v.text}`;
+        
+        //BUSCAR SI EL VERSÍCULO TIENE MARCA
+        const h = hightlights.find(h => h.verse_number === v.verse_number && h.version === selectedVersion);
+        if (h) {
+            vDiv.style.backgroundColor = h.color;
+        }
+
+        //CLIC PARA SELECCIÓN
+        vDiv.onclick = (e) => {
+            toggleVerseSelection(vDiv, selectedVersion, v.verse_number, v.text);
+            body.appendChild(vDiv);
+        };
+
         body.appendChild(vDiv);
     });
+    
     col.appendChild(header); col.appendChild(body);
     columnsContainer.appendChild(col);
 }
+
+function toggleVerseSelection(element, version, verseNum, text) {
+    const verseData = {
+        version: version,
+        book: currentBook,
+        chapter: currentChapter,
+        verse: verseNum,
+        text: text
+    };
+
+    const isSelected = element.classList.toggle('selected');
+
+    if (isSelected) {
+        selectedVerses.push(verseData);
+    } else {
+        selectedVerses = selectedVerses.filter(v => v.verse !== verseNum || v.version !== version);
+    }
+
+    updateActionToolbar()
+}
+
+function updateActionToolbar() {
+    const toolbar = document.getElementById('action-toolbar');
+    const info = document.getElementById('selected-info');
+
+    if (selectedVerses.length > 0) {
+        toolbar.classList.remove('hidden');
+        info.innerText = `${selectedVerses.length} seleccionados`;
+    } else {
+        toolbar.classList.add('hidden');
+    }
+}
+
+// Evento para el botón cancelar de la barra
+document.getElementById('action-cancel').onclick = () => {
+    selectedVerses = [];
+    document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
+    updateActionToolbar();
+};
 
 function setupScrollSync() {
     const columns = document.querySelectorAll('.version-column');
@@ -213,6 +288,94 @@ function renderSidebarGroups(books, container, side) {
         });
         gDiv.appendChild(header); gDiv.appendChild(list); container.appendChild(gDiv);
     });
+}
+
+/**
+ * ACCIÓN: COPIAR AL PORTAPAPELES
+ */
+async function copySelectedVerses() {
+    if (selectedVerses.length === 0) return;
+
+    // Ordenamos por número de versículo para que la cita sea coherente
+    selectedVerses.sort((a, b) => a.verse - b.verse);
+
+    let textToCopy = "";
+    const first = selectedVerses[0];
+    
+    // Construimos el cuerpo del texto
+    selectedVerses.forEach(v => {
+        textToCopy += `${v.verse}. ${v.text} `;
+    });
+
+    // Añadimos la referencia al final
+    // Ejemplo: (Génesis 1:1-3, RV1960)
+    const lastVerse = selectedVerses[selectedVerses.length - 1].verse;
+    const range = selectedVerses.length > 1 ? `${first.verse}-${lastVerse}` : first.verse;
+    
+    textToCopy += `\n(${first.book} ${first.chapter}:${range}, ${first.version})`;
+
+    await navigator.clipboard.writeText(textToCopy);
+    
+    // Feedback visual rápido y limpiar
+    const copyBtn = document.getElementById('action-copy');
+    const originalIcon = copyBtn.innerText;
+    copyBtn.innerText = "✅";
+    setTimeout(() => {
+        copyBtn.innerText = originalIcon;
+        clearSelection();
+    }, 1000);
+}
+
+/**
+ * ACCIÓN: MARCATEXTOS (HIGHLIGHTS)
+ */
+async function applyHighlight(color) {
+    for (const v of selectedVerses) {
+        // 1. Guardar en la base de datos de usuario
+        await window.api.saveHighlight({
+            book: v.book,
+            chapter: v.chapter,
+            verse: v.verse,
+            version: v.version,
+            color: color
+        });
+
+        // 2. Aplicar color en la interfaz inmediatamente
+        const selector = `.version-column:has(.version-select[value="${v.version}"]) .verse[data-verse="${v.verse}"]`;
+        // Nota: Como la UI es dinámica, buscamos el elemento actual
+        const allColumns = document.querySelectorAll('.version-column');
+        allColumns.forEach(col => {
+            const select = col.querySelector('.version-select');
+            if (select && select.value === v.version) {
+                const vEl = col.querySelector(`.verse[data-verse="${v.verse}"]`);
+                if (vEl) vEl.style.backgroundColor = color;
+            }
+        });
+    }
+    clearSelection();
+}
+
+/**
+ * LIMPIAR SELECCIÓN
+ */
+function clearSelection() {
+    selectedVerses = [];
+    document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
+    updateActionToolbar();
+}
+
+// --- ACTUALIZAR EVENTOS ---
+// Añade esto dentro de tu función setupEventListeners()
+function setupActionEvents() {
+    document.getElementById('action-copy').onclick = copySelectedVerses;
+
+    // Colores del Marcatextos
+    document.querySelectorAll('.btn-color').forEach(btn => {
+        btn.onclick = () => applyHighlight(btn.dataset.color);
+    });
+
+    // Botón Favoritos (Próximamente)
+    document.getElementById('action-fav').onclick = () => alert("Función Favoritos próximamente...");
 }
 
 window.addEventListener('DOMContentLoaded', init);
