@@ -23,23 +23,15 @@ function getChapter(version, book, chapter) {
     });
 }
 
-// BUSCADOR MEJORADO
 function searchWords(version, keyword) {
     return new Promise((resolve, reject) => {
-        // Usamos LOWER para que no importe si escribes en mayúsculas o minúsculas
-        const sql = `SELECT * FROM bible_verses WHERE version = ? AND text LIKE ? LIMIT 100`;
+        // Usamos la función LOWER de SQL para asegurar que encuentre "Fe", "fe" o "FE"
+        const sql = `SELECT * FROM bible_verses WHERE version = ? AND LOWER(text) LIKE LOWER(?) LIMIT 200`;
         const param = `%${keyword}%`;
         
-        console.log(`Ejecutando SQL: Buscar "${keyword}" en versión "${version}"`);
-        
         db.all(sql, [version, param], (err, rows) => {
-            if (err) {
-                console.error("Error en SQL:", err);
-                reject(err);
-            } else {
-                console.log(`SQL encontró ${rows.length} resultados`);
-                resolve(rows);
-            }
+            if (err) reject(err);
+            else resolve(rows);
         });
     });
 }

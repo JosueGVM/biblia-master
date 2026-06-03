@@ -1,17 +1,17 @@
-// Estado global
+// Reemplazo Total de src/renderer/renderer.js
+
 let activeVersions = ['RV1960']; 
 let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
 
-// Elementos del DOM
 const columnsContainer = document.getElementById('text-columns-container');
 const currentTitleLabel = document.getElementById('current-title');
 const leftSidebar = document.getElementById('prev-books');
 const rightSidebar = document.getElementById('next-books');
 const addVersionBtn = document.getElementById('add-version');
 
-// Elementos del Buscador
+// Elementos de búsqueda
 const searchInput = document.getElementById('search-input');
 const searchBtn = document.getElementById('search-btn');
 const searchContainer = document.getElementById('search-results-container');
@@ -19,21 +19,15 @@ const resultsList = document.getElementById('results-list');
 const closeSearchBtn = document.getElementById('close-search');
 const resultsCount = document.getElementById('results-count');
 
-/**
- * Inicialización
- */
 async function init() {
     allAvailableVersions = await window.api.getVersions();
-    // Validar que la versión inicial existe
     if (!allAvailableVersions.includes(activeVersions[0])) {
         activeVersions[0] = allAvailableVersions[0] || 'RV1960';
     }
     loadContent();
+    setupEventListeners(); // Nueva función para organizar eventos
 }
 
-/**
- * Carga el contenido principal
- */
 async function loadContent() {
     columnsContainer.innerHTML = "";
     currentTitleLabel.innerText = `${currentBook} ${currentChapter}`;
@@ -54,9 +48,6 @@ async function loadContent() {
     }
 }
 
-/**
- * Dibuja una columna
- */
 function renderColumn(index, selectedVersion, verses) {
     const col = document.createElement('div');
     col.classList.add('version-column');
@@ -90,6 +81,7 @@ function renderColumn(index, selectedVersion, verses) {
     verses.forEach(v => {
         const vDiv = document.createElement('div');
         vDiv.classList.add('verse');
+        // Usamos text-align: left para evitar espacios feos
         vDiv.innerHTML = `<span class="verse-number">${v.verse_number}</span>${v.text}`;
         body.appendChild(vDiv);
     });
@@ -99,9 +91,6 @@ function renderColumn(index, selectedVersion, verses) {
     columnsContainer.appendChild(col);
 }
 
-/**
- * Sincronización de Scroll por Porcentaje
- */
 function setupScrollSync() {
     const columns = document.querySelectorAll('.version-column');
     let isSyncing = false;
@@ -122,84 +111,27 @@ function setupScrollSync() {
     });
 }
 
-
 /**
- * Función de Búsqueda con Diagnóstico
+ * LÓGICA DE BÚSQUEDA CORREGIDA
  */
 async function performSearch() {
     const query = searchInput.value.trim();
     
-    console.log("Iniciando búsqueda de:", query); // MENSAJE DE CONTROL
+    // CAMBIO: Ahora permite 2 letras para buscar "Fe"
+    if (query.length < 2) return; 
 
-    if (query.length < 3) {
-        console.warn("Búsqueda demasiado corta");
-        return;
-    }
-
-    // Usamos la primera versión de la lista
+    // Usamos la primera versión activa para buscar
     const versionBusqueda = activeVersions[0];
 
     try {
-        // Llamada a la base de datos
         const results = await window.api.search({ version: versionBusqueda, keyword: query });
         
-        console.log("Resultados recibidos de la DB:", results.length); // MENSAJE DE CONTROL
-
         resultsList.innerHTML = "";
         searchContainer.classList.remove('hidden');
         resultsCount.innerText = `${results.length} resultados en ${versionBusqueda}`;
 
         if (results.length === 0) {
-            resultsList.innerHTML = `<div style="padding:20px; color:gray; text-align:center;">
-                                        No se encontraron coincidencias para "${query}" en ${versionBusqueda}.
-                                     </div>`;
-            return;
-        }
-
-        results.forEach(res => {
-            const div = document.createElement('div');
-            div.classList.add('search-item');
-            div.innerHTML = `
-                <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
-                <p class="search-item-text">${res.text}</p>
-            `;
-            
-            div.onclick = () => {
-                currentBook = res.book_name;
-                currentChapter = res.chapter;
-                searchContainer.classList.add('hidden');
-                loadContent(); 
-            };
-            resultsList.appendChild(div);
-        });
-    } catch (err) {
-        console.error("Error crítico en el buscador:", err);
-    }
-}
-
-async function performSearch() {
-    const query = searchInput.value.trim();
-    console.log("1. Intentando buscar:", query);
-
-    if (query.length < 3) {
-        alert("Escribe al menos 3 letras para buscar.");
-        return;
-    }
-
-    const versionParaBuscar = activeVersions[0];
-    console.log("2. Buscando en versión:", versionParaBuscar);
-
-    try {
-        // Llamada a la API
-        const results = await window.api.search({ version: versionParaBuscar, keyword: query });
-        console.log("3. Resultados recibidos:", results.length);
-
-        resultsList.innerHTML = "";
-        searchContainer.classList.remove('hidden');
-        resultsCount.innerText = `${results.length} resultados en ${versionParaBuscar}`;
-
-        if (results.length === 0) {
-            resultsList.innerHTML = `<div style="padding:20px; color:gray; text-align:center;">No hay resultados para "${query}"</div>`;
+            resultsList.innerHTML = `<div style="padding:20px; color:gray; text-align:center;">No se encontraron resultados para "${query}".</div>`;
             return;
         }
 
@@ -218,22 +150,44 @@ async function performSearch() {
             };
             resultsList.appendChild(div);
         });
-
-    } catch (error) {
-        console.error("Error en la búsqueda:", error);
+    } catch (err) {
+        console.error("Error en la búsqueda:", err);
     }
 }
 
-// VINCULACIÓN DE EVENTOS (Pon esto al final del archivo)
-if (searchBtn) searchBtn.onclick = performSearch;
-if (searchInput) {
-    searchInput.onkeyup = (e) => { if (e.key === "Enter") performSearch(); };
-}
-if (closeSearchBtn) {
-    closeSearchBtn.onclick = () => searchContainer.classList.add('hidden');
-}
 /**
- * Lógica de Sidebars
+ * CONFIGURACIÓN DE EVENTOS (Evita bloqueos de input)
+ */
+function setupEventListeners() {
+    addVersionBtn.addEventListener('click', () => {
+        const next = allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
+        activeVersions.push(next);
+        loadContent();
+    });
+
+    searchBtn.addEventListener('click', performSearch);
+
+    searchInput.addEventListener('keyup', (e) => {
+        if (e.key === "Enter") {
+            performSearch();
+            searchInput.blur(); // Quita el foco para que se vea el resultado
+        }
+    });
+
+    closeSearchBtn.addEventListener('click', () => {
+        searchContainer.classList.add('hidden');
+    });
+}
+
+function removeVersion(index) {
+    if (activeVersions.length > 1) {
+        activeVersions.splice(index, 1);
+        loadContent();
+    }
+}
+
+/**
+ * LÓGICA DE SIDEBAR
  */
 function updateSidebars(bookName) {
     leftSidebar.innerHTML = "";
@@ -284,6 +238,5 @@ function renderSidebarGroups(books, container, side) {
         container.appendChild(gDiv);
     });
 }
-
 
 window.addEventListener('DOMContentLoaded', init);

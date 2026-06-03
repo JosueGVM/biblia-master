@@ -135,8 +135,17 @@ body, html {
 
 /* PANEL DE RESULTADOS */
 #search-results-container {
-    position: absolute; top: 90px; left: 0; right: 0; bottom: 0; background: var(--bg-column); z-index: 100; display: flex; flex-direction: column;
+    position: absolute; 
+    top: 110px; /* Bajado para no tapar el header */
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: var(--bg-column); 
+    z-index: 1000; /* Prioridad alta pero sin tapar el input */
+    display: flex; 
+    flex-direction: column;
 }
+
 .hidden { display: none !important; }
 
 #search-results-header { padding: 15px 25px; background: var(--bg-header); display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
