@@ -12,24 +12,34 @@
 
         <main id="main-reader">
             <header id="reader-header">
-                <div id="header-layout">
-                    <div class="header-side-box"></div>
-                    <div id="header-center">
-                        <h1 id="current-title">Génesis 1</h1>
+                <div id="header-top-row">
+                    <div id="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar palabra...">
+                        <button id="search-btn">🔍</button>
                     </div>
-                    <div class="header-actions">
-                        <div id="search-box">
-                            <input type="text" id="search-input" placeholder="Buscar...">
-                            <button id="search-btn">🔍</button>
-                        </div>
-                        <button id="settings-btn" title="Apariencia">⚙️</button>
-                        <button class="btn-add" id="add-version" title="Añadir versión">+</button>
-                    </div>
+                    <button id="settings-btn" title="Apariencia">⚙️</button>
+                    <button class="btn-add" id="add-version" title="Añadir versión">+</button>
+                </div>
+                <div id="header-bottom-row">
+                    <h1 id="current-title">Cargando...</h1>
                 </div>
             </header>
             
             <div id="text-columns-container"></div>
 
+            <!-- PANEL DE BÚSQUEDA -->
+            <div id="search-results-container" class="hidden">
+                <div id="search-results-header">
+                    <div id="search-info-group">
+                        <h2 id="search-keyword-display">Búsqueda</h2>
+                        <span id="results-count">0 resultados</span>
+                    </div>
+                    <button id="close-search">Volver a la lectura ✕</button>
+                </div>
+                <div id="results-list"></div>
+            </div>
+
+            <!-- BARRA DE ACCIONES -->
             <div id="action-toolbar" class="hidden">
                 <div id="selected-info">0 seleccionados</div>
                 <div class="action-buttons">
@@ -45,14 +55,7 @@
                 </div>
             </div>
 
-            <div id="search-results-container" class="hidden">
-                <div id="search-results-header">
-                    <span id="results-count">0 resultados</span>
-                    <button id="close-search">Volver ✕</button>
-                </div>
-                <div id="results-list"></div>
-            </div>
-
+            <!-- MODAL CONFIGURACIÓN -->
             <div id="settings-modal" class="hidden">
                 <div id="settings-content">
                     <h2>Configuración</h2>
@@ -65,9 +68,8 @@
                         <select id="font-family-select" class="custom-select">
                             <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
                             <option value="'Georgia', serif">Clásica (Serif)</option>
-                            <option value="'Charter', 'Bitstream Charter', serif">Elegante (Charter)</option>
+                            <option value="'Charter', serif">Elegante (Charter)</option>
                             <option value="'Trebuchet MS', sans-serif">Lectura (Trebuchet)</option>
-                            <option value="'Courier New', monospace">Código (Monospace)</option>
                         </select>
                     </div>
                     <div class="setting-item">

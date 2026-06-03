@@ -32,7 +32,7 @@ async function loadContent() {
     try {
         const [results, highlights] = await Promise.all([biblePromise, highlightsPromise]);
         results.forEach((verses, index) => renderColumn(index, activeVersions[index], verses, highlights));
-        updateSidebars(currentBook); // Restaurado
+        updateSidebars(currentBook); 
         setupScrollSync();
     } catch (err) { console.error(err); }
 }
@@ -67,7 +67,6 @@ function renderColumn(index, version, verses, highlights) {
         vDiv.dataset.verse = v.verse_number;
         vDiv.innerHTML = `<span class="verse-number">${v.verse_number}</span>${v.text}`;
 
-        // Lógica de Marcado con clase para contraste
         const mark = highlights.find(h => h.verse_number === v.verse_number && h.version === version);
         if (mark) {
             vDiv.style.backgroundColor = mark.color;
@@ -111,6 +110,7 @@ async function applyHighlight(color) {
                 vEl.style.backgroundColor = color === 'transparent' ? '' : color;
                 if (color === 'transparent') vEl.classList.remove('highlighted');
                 else vEl.classList.add('highlighted');
+                vEl.classList.remove('selected');
             }
         });
     }
@@ -134,12 +134,43 @@ function cancelSelection() {
     updateActionToolbar();
 }
 
+async function performSearch() {
+    const searchInput = document.getElementById('search-input');
+    const query = searchInput.value.trim();
+    if (query.length < 2) return;
+
+    try {
+        const results = await window.api.search({ version: activeVersions[0], keyword: query });
+        const resultsContainer = document.getElementById('search-results-container');
+        const list = document.getElementById('results-list');
+        const countLabel = document.getElementById('results-count');
+        const keywordDisplay = document.getElementById('search-keyword-display');
+
+        list.innerHTML = "";
+        resultsContainer.classList.remove('hidden');
+        keywordDisplay.innerText = `Resultados para: "${query}"`;
+        countLabel.innerText = `${results.length} coincidencias en ${activeVersions[0]}`;
+
+        if (results.length === 0) {
+            list.innerHTML = `<p style="padding:20px; text-align:center; color:gray;">No se encontraron resultados.</p>`;
+            return;
+        }
+
+        results.forEach(res => {
+            const div = document.createElement('div');
+            div.classList.add('search-item');
+            div.innerHTML = `<span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span><p>${res.text}</p>`;
+            div.onclick = () => { currentBook = res.book_name; currentChapter = res.chapter; resultsContainer.classList.add('hidden'); loadContent(); };
+            list.appendChild(div);
+        });
+    } catch (err) { console.error(err); }
+}
+
 function setupStaticEventListeners() {
     document.querySelectorAll('.btn-color').forEach(btn => {
         btn.onclick = () => applyHighlight(btn.dataset.color);
     });
     document.querySelector('.btn-color-clear').onclick = () => applyHighlight('transparent');
-    
     document.getElementById('action-copy').onclick = copySelected;
     document.getElementById('action-cancel').onclick = cancelSelection;
 
@@ -174,24 +205,8 @@ function setupStaticEventListeners() {
         loadContent();
     };
 
-    const searchInput = document.getElementById('search-input');
-    const performSearch = async () => {
-        const query = searchInput.value.trim();
-        if (query.length < 2) return;
-        const results = await window.api.search({ version: activeVersions[0], keyword: query });
-        const list = document.getElementById('results-list');
-        list.innerHTML = "";
-        document.getElementById('search-results-container').classList.remove('hidden');
-        results.forEach(res => {
-            const div = document.createElement('div');
-            div.classList.add('search-item');
-            div.innerHTML = `<span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span><p>${res.text}</p>`;
-            div.onclick = () => { currentBook = res.book_name; currentChapter = res.chapter; document.getElementById('search-results-container').classList.add('hidden'); loadContent(); };
-            list.appendChild(div);
-        });
-    };
     document.getElementById('search-btn').onclick = performSearch;
-    searchInput.onkeyup = (e) => { if (e.key === "Enter") performSearch(); };
+    document.getElementById('search-input').onkeyup = (e) => { if (e.key === "Enter") performSearch(); };
     document.getElementById('close-search').onclick = () => document.getElementById('search-results-container').classList.add('hidden');
 }
 
@@ -208,7 +223,6 @@ function loadAppSettings() {
     document.querySelectorAll('.theme-dot').forEach(dot => { if (dot.dataset.theme === savedTheme) dot.classList.add('active'); });
 }
 
-// SIDEBARS INTELIGENTES (VALIDADOS)
 function updateSidebars(bookName) {
     leftSidebar.innerHTML = ""; rightSidebar.innerHTML = "";
     const currentIndex = bibleStructure.findIndex(b => b.name === bookName);
@@ -223,19 +237,14 @@ function renderSidebarGroups(books, container, side) {
     const groupNames = Object.keys(groups);
     groupNames.forEach((gName, idx) => {
         const isNeighbor = (side === "prev" && idx === groupNames.length - 1) || (side === "next" && idx === 0);
-        const gDiv = document.createElement('div');
-        gDiv.classList.add('group-container');
+        const gDiv = document.createElement('div'); gDiv.classList.add('group-container');
         if (isNeighbor) gDiv.classList.add('active');
-        const header = document.createElement('div');
-        header.classList.add('group-header');
+        const header = document.createElement('div'); header.classList.add('group-header');
         header.innerHTML = `<span>${gName}</span><small>${isNeighbor ? '▲' : '▼'}</small>`;
         header.onclick = () => { gDiv.classList.toggle('active'); header.querySelector('small').innerText = gDiv.classList.contains('active') ? '▲' : '▼'; };
-        const list = document.createElement('div');
-        list.classList.add('book-list');
+        const list = document.createElement('div'); list.classList.add('book-list');
         groups[gName].forEach(b => {
-            const item = document.createElement('div');
-            item.classList.add('book-item');
-            item.innerText = b.name;
+            const item = document.createElement('div'); item.classList.add('book-item'); item.innerText = b.name;
             item.onclick = (e) => { e.stopPropagation(); currentBook = b.name; currentChapter = 1; loadContent(); };
             list.appendChild(item);
         });

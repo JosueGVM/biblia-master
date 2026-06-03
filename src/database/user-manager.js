@@ -9,47 +9,36 @@ const dbPath = isPackaged
 
 const db = new sqlite3.Database(dbPath);
 
-// Inicializar tablas de usuario
+// Inicializar tablas
 db.serialize(() => {
-    // Tabla de Marcatextos (Highlights)
     db.run(`CREATE TABLE IF NOT EXISTS highlights (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_name TEXT,
         chapter INTEGER,
         verse_number INTEGER,
         color TEXT,
-        version TEXT
-    )`);
-
-    // Tabla de Favoritos
-    db.run(`CREATE TABLE IF NOT EXISTS favorites (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book_name TEXT,
-        chapter INTEGER,
-        verse_number INTEGER,
         version TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    // Tabla de Notas
-    db.run(`CREATE TABLE IF NOT EXISTS notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book_name TEXT,
-        chapter INTEGER,
-        verse_number INTEGER,
-        content TEXT,
-        version TEXT
+        UNIQUE(book_name, chapter, verse_number, version) -- Evita duplicados
     )`);
 });
 
-// Funciones para Marcatextos
 function saveHighlight(data) {
     return new Promise((resolve, reject) => {
-        const sql = `INSERT INTO highlights (book_name, chapter, verse_number, color, version) VALUES (?, ?, ?, ?, ?)`;
-        db.run(sql, [data.book, data.chapter, data.verse, data.color, data.version], function(err) {
-            if (err) reject(err);
-            else resolve({ id: this.lastID });
-        });
+        if (data.color === 'transparent') {
+            // SI ES TRANSPARENTE, BORRAMOS DE LA DB
+            const sql = `DELETE FROM highlights WHERE book_name = ? AND chapter = ? AND verse_number = ? AND version = ?`;
+            db.run(sql, [data.book, data.chapter, data.verse, data.version], function(err) {
+                if (err) reject(err);
+                else resolve({ deleted: true });
+            });
+        } else {
+            // SI TIENE COLOR, INSERTAMOS O REEMPLAZAMOS
+            const sql = `INSERT OR REPLACE INTO highlights (book_name, chapter, verse_number, color, version) VALUES (?, ?, ?, ?, ?)`;
+            db.run(sql, [data.book, data.chapter, data.verse, data.color, data.version], function(err) {
+                if (err) reject(err);
+                else resolve({ id: this.lastID });
+            });
+        }
     });
 }
 
@@ -63,5 +52,4 @@ function getHighlights(book, chapter) {
     });
 }
 
-// Exportamos las funciones que usaremos por ahora
 module.exports = { saveHighlight, getHighlights };
