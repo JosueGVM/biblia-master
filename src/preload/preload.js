@@ -3,5 +3,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     getChapter: (data) => ipcRenderer.invoke('get-chapter', data),
-    getVersions: () => ipcRenderer.invoke('get-versions') // Nueva función
+    getVersions: () => ipcRenderer.invoke('get-versions'),
+    search: (data) => ipcRenderer.invoke('search', data) // <--- Esta línea es vital
 });

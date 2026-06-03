@@ -3,6 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
     <title>Biblia Master</title>
     <link rel="stylesheet" href="./css/layout.css">
 </head>
@@ -12,14 +13,30 @@
 
         <main id="main-reader">
             <header id="reader-header">
-                <h1 id="current-title">Cargando...</h1>
+                <div id="header-top">
+                    <h1 id="current-title">Cargando...</h1>
+                    <!-- BARRA DE BÚSQUEDA -->
+                    <div id="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar palabra o frase...">
+                        <button id="search-btn">🔍</button>
+                    </div>
+                </div>
+                
                 <div id="version-controls">
                     <button class="btn-add" id="add-version">+ Añadir Versión</button>
                 </div>
             </header>
             
-            <div id="text-columns-container">
-                <!-- Las columnas se inyectan aquí -->
+            <!-- Contenedor de Columnas -->
+            <div id="text-columns-container"></div>
+
+            <!-- CONTENEDOR DE RESULTADOS DE BÚSQUEDA (Oculto por defecto) -->
+            <div id="search-results-container" class="hidden">
+                <div id="search-results-header">
+                    <span id="results-count">0 resultados</span>
+                    <button id="close-search">Volver a la lectura ✕</button>
+                </div>
+                <div id="results-list"></div>
             </div>
         </main>
 
