@@ -8,69 +8,67 @@
 </head>
 <body class="theme-dark">
     <div id="app-container">
-        <!-- Barra Lateral Izquierda -->
+        <!-- Sidebar Izquierdo -->
         <aside class="sidebar"><div id="prev-books"></div></aside>
 
-        <!-- Lector Central -->
         <main id="main-reader">
             <header id="reader-header">
-                <div id="header-top">
-                    <!-- TÍTULO EN GRANDE Y NEGRITAS -->
-                    <h1 id="current-title">Génesis 1</h1>
-                    
-                    <div id="header-actions">
-                        <div id="search-box">
-                            <input type="text" id="search-input" placeholder="Buscar...">
-                            <button id="search-btn">🔍</button>
-                        </div>
-                        <button id="settings-btn" title="Configuración">⚙️</button>
+                <!-- Fila Superior: Buscador y Botones Centrados -->
+                <div id="header-top-row">
+                    <div id="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar...">
+                        <button id="search-btn">🔍</button>
                     </div>
+                    <button id="settings-btn" title="Apariencia">⚙️</button>
+                    <button class="btn-add" id="add-version" title="Añadir versión">+</button>
                 </div>
-                <div id="version-controls">
-                    <button class="btn-add" id="add-version">+ Añadir Versión</button>
+
+                <!-- Fila Inferior: Título Centrado -->
+                <div id="header-bottom-row">
+                    <h1 id="current-title">Génesis 1</h1>
                 </div>
             </header>
             
             <div id="text-columns-container"></div>
 
-            <!-- PANEL DE BÚSQUEDA -->
+            <!-- Panel de Búsqueda -->
             <div id="search-results-container" class="hidden">
                 <div id="search-results-header">
                     <span id="results-count">0 resultados</span>
-                    <button id="close-search">Cerrar ✕</button>
+                    <button id="close-search">Volver ✕</button>
                 </div>
                 <div id="results-list"></div>
             </div>
 
-            <!-- MODAL DE CONFIGURACIÓN -->
+            <!-- Modal de Configuración -->
             <div id="settings-modal" class="hidden">
                 <div id="settings-content">
-                    <h2>Apariencia</h2>
+                    <h2>Configuración</h2>
                     <div class="setting-item">
                         <label>Tamaño de letra: <span id="font-size-value">18px</span></label>
                         <input type="range" id="font-size-slider" min="14" max="35" value="18">
                     </div>
                     <div class="setting-item">
                         <label>Tipografía</label>
-                        <select id="font-family-select">
+                        <select id="font-family-select" class="custom-select">
                             <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
                             <option value="'Georgia', serif">Clásica (Serif)</option>
                         </select>
                     </div>
                     <div class="setting-item">
-                        <label>Tema</label>
+                        <label>Tema visual</label>
                         <div id="theme-selector">
                             <div class="theme-dot light" data-theme="theme-light"></div>
                             <div class="theme-dot dark" data-theme="theme-dark"></div>
                             <div class="theme-dot sepia" data-theme="theme-sepia"></div>
                         </div>
                     </div>
-                    <button id="close-settings">Aplicar</button>
+                    <button id="close-settings" class="btn-primary">Cerrar y guardar</button>
                 </div>
             </div>
         </main>
 
-        <!-- Barra Lateral Derecha -->
+        <!-- Sidebar Derecho -->
         <aside class="sidebar"><div id="next-books"></div></aside>
     </div>
 

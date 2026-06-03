@@ -148,7 +148,6 @@ async function performSearch() {
     } catch (err) { console.error(err); }
 }
 
-// LOGICA DE SIDEBARS RECUPERADA
 function updateSidebars(bookName) {
     leftSidebar.innerHTML = ""; rightSidebar.innerHTML = "";
     const currentIndex = bibleStructure.findIndex(b => b.name === bookName);
@@ -165,7 +164,7 @@ function renderSidebarGroups(books, container, side) {
         const isNeighbor = (side === "prev" && idx === groupNames.length - 1) || (side === "next" && idx === 0);
         const gDiv = document.createElement('div');
         gDiv.classList.add('group-container');
-        if (isNeighbor) gDiv.classList.add('active'); // Mantiene el comportamiento inteligente
+        if (isNeighbor) gDiv.classList.add('active');
 
         const header = document.createElement('div');
         header.classList.add('group-header');
