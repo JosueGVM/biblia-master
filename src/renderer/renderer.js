@@ -1,7 +1,7 @@
-// Reemplazo Total de src/renderer/renderer.js
+// Reemplazo Total de src/renderer/renderer.js (Incluye Scroll Sync)
 
 let activeVersions = ['RV1960']; 
-let allAvailableVersions = []; // Se llenará desde la DB
+let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
 
@@ -11,12 +11,8 @@ const leftSidebar = document.getElementById('prev-books');
 const rightSidebar = document.getElementById('next-books');
 const addVersionBtn = document.getElementById('add-version');
 
-/**
- * Función inicial: Carga versiones de la DB y luego el contenido
- */
 async function init() {
     allAvailableVersions = await window.api.getVersions();
-    // Si la versión por defecto no existe en tu DB, usamos la primera que encuentre
     if (!allAvailableVersions.includes(activeVersions[0])) {
         activeVersions[0] = allAvailableVersions[0];
     }
@@ -35,7 +31,41 @@ async function loadContent() {
     results.forEach((verses, index) => {
         renderColumn(index, activeVersions[index], verses);
     });
+
     updateSidebars(currentBook);
+    setupScrollSync(); // ACTIVAMOS LA SINCRONIZACIÓN
+}
+
+/**
+ * SINCRONIZACIÓN DE SCROLL POR PORCENTAJE
+ */
+function setupScrollSync() {
+    const columns = document.querySelectorAll('.version-column');
+    let isSyncing = false;
+
+    columns.forEach(col => {
+        col.onscroll = () => {
+            if (!isSyncing) {
+                isSyncing = true;
+                
+                // Calculamos el porcentaje de scroll de la columna actual
+                // (Posición actual) / (Altura total - Altura visible)
+                const percentage = col.scrollTop / (col.scrollHeight - col.clientHeight);
+
+                columns.forEach(otherCol => {
+                    if (otherCol !== col) {
+                        // Aplicamos el mismo porcentaje a las otras columnas
+                        otherCol.scrollTop = percentage * (otherCol.scrollHeight - otherCol.clientHeight);
+                    }
+                });
+
+                // Usamos requestAnimationFrame para una sincronización más suave y fluida
+                requestAnimationFrame(() => {
+                    isSyncing = false;
+                });
+            }
+        };
+    });
 }
 
 function renderColumn(index, selectedVersion, verses) {
@@ -45,10 +75,8 @@ function renderColumn(index, selectedVersion, verses) {
     const header = document.createElement('div');
     header.classList.add('column-header');
 
-    // SELECTOR
     const select = document.createElement('select');
     select.classList.add('version-select');
-    
     allAvailableVersions.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v;
@@ -57,7 +85,6 @@ function renderColumn(index, selectedVersion, verses) {
         select.appendChild(opt);
     });
 
-    // CORRECCIÓN: Evento de cambio que SÍ funciona
     select.addEventListener('change', (e) => {
         activeVersions[index] = e.target.value;
         loadContent();
@@ -92,13 +119,12 @@ function removeVersion(index) {
 }
 
 addVersionBtn.onclick = () => {
-    // Busca una versión que no esté abierta, si todas están abiertas, repite la primera
     const proxima = allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
     activeVersions.push(proxima);
     loadContent();
 };
 
-/* --- MANTENER FUNCIONES DE SIDEBAR IGUAL QUE ANTES --- */
+/* --- LÓGICA DE SIDEBAR --- */
 function updateSidebars(bookName) {
     leftSidebar.innerHTML = "";
     rightSidebar.innerHTML = "";
@@ -149,5 +175,4 @@ function renderSidebarGroups(books, container, side) {
     });
 }
 
-// Cambiamos el inicio
 window.addEventListener('DOMContentLoaded', init);
