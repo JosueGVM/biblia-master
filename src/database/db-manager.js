@@ -1,7 +1,12 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { app } = require('electron');
 
-const dbPath = path.join(__dirname, 'bibles.db');
+const isPackaged = app.isPackaged;
+const dbPath = isPackaged 
+    ? path.join(process.resourcesPath, 'database', 'bibles.db')
+    : path.join(__dirname, 'bibles.db');
+
 const db = new sqlite3.Database(dbPath);
 
 function getVersions() {
@@ -25,10 +30,9 @@ function getChapter(version, book, chapter) {
 
 function searchWords(version, keyword) {
     return new Promise((resolve, reject) => {
-        // Usamos la función LOWER de SQL para asegurar que encuentre "Fe", "fe" o "FE"
+        // Usamos LOWER para búsqueda insensible a mayúsculas
         const sql = `SELECT * FROM bible_verses WHERE version = ? AND LOWER(text) LIKE LOWER(?) LIMIT 200`;
         const param = `%${keyword}%`;
-        
         db.all(sql, [version, param], (err, rows) => {
             if (err) reject(err);
             else resolve(rows);

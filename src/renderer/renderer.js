@@ -130,22 +130,47 @@ function setupEventListeners() {
     };
 }
 
+/**
+ * BUSCADOR CORREGIDO PARA PRODUCCIÓN
+ */
 async function performSearch() {
     const query = searchInput.value.trim();
     if (query.length < 2) return;
+
+    // Usamos la versión de la primera columna para buscar
+    const versionBusqueda = activeVersions[0];
+    const resultsCountLabel = document.getElementById('results-count');
+
     try {
-        const results = await window.api.search({ version: activeVersions[0], keyword: query });
+        const results = await window.api.search({ version: versionBusqueda, keyword: query });
+        
         resultsList.innerHTML = "";
         searchContainer.classList.remove('hidden');
-        resultsCount.innerText = `${results.length} resultados en ${activeVersions[0]}`;
+        resultsCountLabel.innerText = `${results.length} resultados encontrados en ${versionBusqueda}`;
+
+        if (results.length === 0) {
+            resultsList.innerHTML = `<div style="padding:20px; color:gray; text-align:center;">No se encontraron resultados para "${query}".</div>`;
+            return;
+        }
+
         results.forEach(res => {
             const div = document.createElement('div');
             div.classList.add('search-item');
-            div.innerHTML = `<span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span><p class="search-item-text">${res.text}</p>`;
-            div.onclick = () => { currentBook = res.book_name; currentChapter = res.chapter; searchContainer.classList.add('hidden'); loadContent(); };
+            div.innerHTML = `
+                <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
+                <p class="search-item-text">${res.text}</p>
+            `;
+            div.onclick = () => {
+                currentBook = res.book_name;
+                currentChapter = res.chapter;
+                searchContainer.classList.add('hidden');
+                loadContent();
+            };
             resultsList.appendChild(div);
         });
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.error("Error en búsqueda:", err);
+    }
 }
 
 function updateSidebars(bookName) {
@@ -165,7 +190,6 @@ function renderSidebarGroups(books, container, side) {
         const gDiv = document.createElement('div');
         gDiv.classList.add('group-container');
         if (isNeighbor) gDiv.classList.add('active');
-
         const header = document.createElement('div');
         header.classList.add('group-header');
         header.innerHTML = `<span>${gName}</span><small>${isNeighbor ? '▲' : '▼'}</small>`;
@@ -173,7 +197,6 @@ function renderSidebarGroups(books, container, side) {
             gDiv.classList.toggle('active');
             header.querySelector('small').innerText = gDiv.classList.contains('active') ? '▲' : '▼';
         };
-
         const list = document.createElement('div');
         list.classList.add('book-list');
         groups[gName].forEach(b => {

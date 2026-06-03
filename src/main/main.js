@@ -14,10 +14,9 @@ function createWindow() {
     });
 
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
-    // win.webContents.openDevTools(); // Descomenta esta línea si quieres que se abra la consola siempre
 }
 
-// --- CANALES DE COMUNICACIÓN ---
+// CANALES DE COMUNICACIÓN
 ipcMain.handle('get-chapter', async (event, data) => {
     return await dbManager.getChapter(data.version, data.book, data.chapter);
 });
@@ -26,9 +25,16 @@ ipcMain.handle('get-versions', async () => {
     return await dbManager.getVersions();
 });
 
+// BUSCADOR (Asegurado)
 ipcMain.handle('search', async (event, data) => {
-    console.log("Pedido de búsqueda recibido en el Main Process:", data);
-    return await dbManager.searchWords(data.version, data.keyword);
+    try {
+        console.log("Buscando en el proceso Main:", data.keyword);
+        const results = await dbManager.searchWords(data.version, data.keyword);
+        return results;
+    } catch (err) {
+        console.error("Error en el proceso Main al buscar:", err);
+        return [];
+    }
 });
 
 app.whenReady().then(createWindow);

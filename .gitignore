@@ -10,6 +10,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+#Archivos de diseño icono
+.af
+*.af
+
 # Carpeta de construcción (cuando empaquetes el .exe)
 dist/
 out/
