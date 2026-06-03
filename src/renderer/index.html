@@ -6,49 +6,45 @@
     <title>Biblia Master</title>
     <link rel="stylesheet" href="./css/layout.css">
 </head>
-<body class="theme-dark">
+<body>
     <div id="app-container">
-        <!-- Sidebar Izquierdo -->
         <aside class="sidebar"><div id="prev-books"></div></aside>
 
         <main id="main-reader">
             <header id="reader-header">
-                <!-- Fila Superior: Buscador y Botones Centrados -->
-                <div id="header-top-row">
-                    <div id="search-box">
-                        <input type="text" id="search-input" placeholder="Buscar...">
-                        <button id="search-btn">🔍</button>
+                <div id="header-layout">
+                    <div class="header-side-box"></div>
+                    <div id="header-center">
+                        <h1 id="current-title">Génesis 1</h1>
                     </div>
-                    <button id="settings-btn" title="Apariencia">⚙️</button>
-                    <button class="btn-add" id="add-version" title="Añadir versión">+</button>
-                </div>
-
-                <!-- Fila Inferior: Título Centrado -->
-                <div id="header-bottom-row">
-                    <h1 id="current-title">Génesis 1</h1>
+                    <div class="header-actions">
+                        <div id="search-box">
+                            <input type="text" id="search-input" placeholder="Buscar...">
+                            <button id="search-btn">🔍</button>
+                        </div>
+                        <button id="settings-btn" title="Apariencia">⚙️</button>
+                        <button class="btn-add" id="add-version" title="Añadir versión">+</button>
+                    </div>
                 </div>
             </header>
             
             <div id="text-columns-container"></div>
 
-            <!-- BARRA FLOTANTE DE ACCIONES (Aparece al seleccionar versículos) -->
             <div id="action-toolbar" class="hidden">
                 <div id="selected-info">0 seleccionados</div>
                 <div class="action-buttons">
                     <button id="action-copy" title="Copiar con referencia">📋</button>
-                    <button id="action-fav" title="Añadir a favoritos">⭐</button>
-                    <button id="action-note" title="Añadir nota">📝</button>
+                    <button id="action-fav" title="Favorito">⭐</button>
                     <div class="color-picker">
-                        <button class="btn-color yellow" data-color="#ffd700"></button>
-                        <button class="btn-color green" data-color="#90ee90"></button>
-                        <button class="btn-color pink" data-color="#ffb6c1"></button>
-                        <button class="btn-color-clear" title="Quitar marca">🚫</button>
+                        <div class="btn-color yellow" data-color="#ffd700"></div>
+                        <div class="btn-color green" data-color="#90ee90"></div>
+                        <div class="btn-color pink" data-color="#ffb6c1"></div>
+                        <div class="btn-color-clear" title="Quitar marca">🚫</div>
                     </div>
                     <button id="action-cancel">✕</button>
                 </div>
             </div>
 
-            <!-- Panel de Búsqueda -->
             <div id="search-results-container" class="hidden">
                 <div id="search-results-header">
                     <span id="results-count">0 resultados</span>
@@ -57,7 +53,6 @@
                 <div id="results-list"></div>
             </div>
 
-            <!-- Modal de Configuración -->
             <div id="settings-modal" class="hidden">
                 <div id="settings-content">
                     <h2>Configuración</h2>
@@ -70,6 +65,9 @@
                         <select id="font-family-select" class="custom-select">
                             <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
                             <option value="'Georgia', serif">Clásica (Serif)</option>
+                            <option value="'Charter', 'Bitstream Charter', serif">Elegante (Charter)</option>
+                            <option value="'Trebuchet MS', sans-serif">Lectura (Trebuchet)</option>
+                            <option value="'Courier New', monospace">Código (Monospace)</option>
                         </select>
                     </div>
                     <div class="setting-item">
@@ -80,12 +78,11 @@
                             <div class="theme-dot sepia" data-theme="theme-sepia"></div>
                         </div>
                     </div>
-                    <button id="close-settings" class="btn-primary">Cerrar y guardar</button>
+                    <button id="close-settings" class="btn-primary">Cerrar</button>
                 </div>
             </div>
         </main>
 
-        <!-- Sidebar Derecho -->
         <aside class="sidebar"><div id="next-books"></div></aside>
     </div>
 

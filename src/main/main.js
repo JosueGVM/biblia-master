@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const dbManager = require('../database/db-manager');
-const userManager = require('../database/user-manager'); // Importar USER MANAGER
+const userManager = require('../database/user-manager'); // Importante
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -17,27 +17,14 @@ function createWindow() {
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
 }
 
-// --- CANALES DE COMUNICACIÓN ---
-ipcMain.handle('get-chapter', async (event, data) => {
-    return await dbManager.getChapter(data.version, data.book, data.chapter);
-});
+// HANDLES DE BIBLIA
+ipcMain.handle('get-chapter', async (e, d) => await dbManager.getChapter(d.version, d.book, d.chapter));
+ipcMain.handle('get-versions', async () => await dbManager.getVersions());
+ipcMain.handle('search', async (e, d) => await dbManager.searchWords(d.version, d.keyword));
 
-ipcMain.handle('get-versions', async () => {
-    return await dbManager.getVersions();
-});
-
-ipcMain.handle('search', async (event, data) => {
-    return await dbManager.searchWords(data.version, data.keyword);
-});
-
-// NUEVOS: Datos de Usuario
-ipcMain.handle('save-highlight', async (event, data) => {
-    return await userManager.saveHighlight(data);
-});
-
-ipcMain.handle('get-highlights', async (event, data) => {
-    return await userManager.getHighlights(data.book, data.chapter);
-});
+// HANDLES DE USUARIO (Highlights)
+ipcMain.handle('save-highlight', async (e, d) => await userManager.saveHighlight(d));
+ipcMain.handle('get-highlights', async (e, d) => await userManager.getHighlights(d.book, d.chapter));
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
