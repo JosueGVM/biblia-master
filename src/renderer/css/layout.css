@@ -1,0 +1,54 @@
+/* src/renderer/css/layout.css */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body, html {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Evita scroll en toda la ventana, solo queremos scroll en el texto */
+}
+
+#app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #f4f4f4;
+    overflow-y: auto;
+    padding: 15px;
+    border: 1px solid #ddd;
+}
+
+#main-reader {
+    flex: 1; /* Esto hace que el centro ocupe todo el espacio sobrante */
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+#reader-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+#text-container {
+    flex: 1;
+    overflow-y: auto; /* Solo el texto tiene scroll */
+    padding: 40px;
+    line-height: 1.6;
+}
+
+/* Estilo para los versículos */
+.verse {
+    margin-bottom: 10px;
+}
+
+.verse-number {
+    font-weight: bold;
+    color: #888;
+    margin-right: 8px;
+    font-size: 0.8em;
+}

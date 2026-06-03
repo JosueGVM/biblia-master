@@ -1,0 +1,43 @@
+<!-- src/renderer/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Biblia Personalizada</title>
+    <link rel="stylesheet" href="./css/layout.css">
+    <link rel="stylesheet" href="./css/themes.css">
+    <link rel="stylesheet" href="./css/typography.css">
+</head>
+<body class="theme-light"> <!-- Clase para cambiar de tema -->
+    
+    <div id="app-container">
+        <!-- Columna Izquierda: Libros Anteriores -->
+        <aside id="left-sidebar" class="sidebar">
+            <div id="prev-books"></div>
+        </aside>
+
+        <!-- Centro: Lector -->
+        <main id="main-reader">
+            <header id="reader-header">
+                <h1 id="current-title">Génesis 1</h1>
+                <div id="controls">
+                    <!-- Aquí irán los selectores de versiones -->
+                </div>
+            </header>
+            
+            <div id="text-container" class="mode-versicle">
+                <!-- Los versículos aparecerán aquí -->
+            </div>
+        </main>
+
+        <!-- Columna Derecha: Libros Siguientes -->
+        <aside id="right-sidebar" class="sidebar">
+            <div id="next-books"></div>
+        </aside>
+    </div>
+
+    <!-- Cargamos la lógica modular -->
+    <script src="./bibleData.js"></script>
+    <script src="./renderer.js"></script>
+</body>
+</html>

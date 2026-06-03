@@ -1,0 +1,18 @@
+# Base de datos (Privado/Copyright)
+src/database/*.db
+src/database/*.sqlite
+
+# Carpetas de instalación (Pesadas)
+node_modules/
+
+# Archivos de sistema y logs
+*.log
+.DS_Store
+Thumbs.db
+
+# Carpeta de construcción (cuando empaquetes el .exe)
+dist/
+out/
+
+# Configuración personal de VS Code
+.vscode/
