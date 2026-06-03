@@ -1,42 +1,31 @@
-<!-- src/renderer/index.html -->
+<!-- Reemplazo Total de src/renderer/index.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Mi Biblia Personalizada</title>
+    <title>Biblia Master</title>
     <link rel="stylesheet" href="./css/layout.css">
-    <link rel="stylesheet" href="./css/themes.css">
-    <link rel="stylesheet" href="./css/typography.css">
 </head>
-<body class="theme-light"> <!-- Clase para cambiar de tema -->
-    
+<body>
     <div id="app-container">
-        <!-- Columna Izquierda: Libros Anteriores -->
-        <aside id="left-sidebar" class="sidebar">
-            <div id="prev-books"></div>
-        </aside>
+        <aside class="sidebar"><div id="prev-books"></div></aside>
 
-        <!-- Centro: Lector -->
         <main id="main-reader">
             <header id="reader-header">
-                <h1 id="current-title">Génesis 1</h1>
-                <div id="controls">
-                    <!-- Aquí irán los selectores de versiones -->
+                <h1 id="current-title">Cargando...</h1>
+                <div id="version-controls">
+                    <button class="btn-add" id="add-version">+ Añadir Versión</button>
                 </div>
             </header>
             
-            <div id="text-container" class="mode-versicle">
-                <!-- Los versículos aparecerán aquí -->
+            <div id="text-columns-container">
+                <!-- Las columnas se inyectan aquí -->
             </div>
         </main>
 
-        <!-- Columna Derecha: Libros Siguientes -->
-        <aside id="right-sidebar" class="sidebar">
-            <div id="next-books"></div>
-        </aside>
+        <aside class="sidebar"><div id="next-books"></div></aside>
     </div>
 
-    <!-- Cargamos la lógica modular -->
     <script src="./bibleData.js"></script>
     <script src="./renderer.js"></script>
 </body>

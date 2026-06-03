@@ -38,6 +38,10 @@ ipcMain.handle('search', async (event, data) => {
     }
 });
 
+ipcMain.handle('get-versions', async () => {
+    return await dbManager.getVersions();
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
