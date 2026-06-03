@@ -7,7 +7,6 @@ function createWindow() {
         width: 1200,
         height: 800,
         webPreferences: {
-            // Ruta absoluta al preload
             preload: path.join(__dirname, '../preload/preload.js'),
             nodeIntegration: false,
             contextIsolation: true
@@ -16,16 +15,27 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
     
-    // Abrir herramientas de desarrollador automáticamente para ver errores
-    // win.webContents.openDevTools(); 
+    // Opcional: Abre las herramientas de desarrollo para ver errores
+    // win.webContents.openDevTools();
 }
 
+// Escuchar peticiones del Renderer
 ipcMain.handle('get-chapter', async (event, data) => {
-    return dbManager.getChapter(data.version, data.book, data.chapter);
+    try {
+        // Esperamos a que la DB nos dé los versículos
+        const verses = await dbManager.getChapter(data.version, data.book, data.chapter);
+        return verses;
+    } catch (error) {
+        return { error: error.message };
+    }
 });
 
 ipcMain.handle('search', async (event, data) => {
-    return dbManager.searchWords(data.version, data.keyword);
+    try {
+        return await dbManager.searchWords(data.version, data.keyword);
+    } catch (error) {
+        return { error: error.message };
+    }
 });
 
 app.whenReady().then(createWindow);

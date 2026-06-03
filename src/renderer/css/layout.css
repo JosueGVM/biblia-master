@@ -3,8 +3,9 @@
 
 body, html {
     height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden; /* Evita scroll en toda la ventana, solo queremos scroll en el texto */
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    background-color: #121212; /* Un negro más profundo para el fondo */
 }
 
 #app-container {
@@ -13,42 +14,120 @@ body, html {
     width: 100vw;
 }
 
+/* BARRAS LATERALES MÁS ESTRECHAS */
 .sidebar {
-    width: 200px;
-    background-color: #f4f4f4;
+    width: 180px; /* Ancho optimizado para "2 Tesalonicenses" */
+    background-color: #1e1e1e;
+    color: #a0a0a0;
     overflow-y: auto;
-    padding: 15px;
-    border: 1px solid #ddd;
+    padding: 8px;
+    border: none;
+    transition: width 0.3s;
 }
 
+/* Estilo para que el scroll de las barras sea muy fino */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+.group-container {
+    margin-bottom: 4px;
+    border-radius: 4px;
+    background-color: #252525;
+}
+
+.group-header {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 0.7rem; /* Texto pequeño pero legible */
+    font-weight: 700;
+    letter-spacing: 0.05rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #777;
+    text-transform: uppercase;
+}
+
+.group-header:hover { color: #569cd6; background-color: #2d2d2d; }
+
+.group-container.active .group-header {
+    color: #569cd6;
+    border-bottom: 1px solid #333;
+}
+
+.book-list {
+    display: none;
+    padding: 4px 0;
+}
+
+.group-container.active .book-list { display: block; }
+
+.book-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #bbb;
+    white-space: nowrap; /* Evita que el nombre del libro se parta en dos líneas */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Si algún nombre fuera muy largo, pone "..." */
+}
+
+.book-item:hover {
+    background-color: #007acc;
+    color: white;
+}
+
+/* LECTOR CENTRAL */
 #main-reader {
-    flex: 1; /* Esto hace que el centro ocupe todo el espacio sobrante */
+    flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: white;
+    background-color: #ffffff;
+    z-index: 10;
 }
 
 #reader-header {
-    padding: 20px;
-    border-bottom: 1px solid #eee;
+    padding: 15px;
+    background: #ffffff;
+    border-bottom: 1px solid #f0f0f0;
     text-align: center;
+}
+
+#reader-header h1 {
+    font-size: 1.4rem;
+    color: #1a1a1a;
+    font-weight: 300;
 }
 
 #text-container {
     flex: 1;
-    overflow-y: auto; /* Solo el texto tiene scroll */
-    padding: 40px;
-    line-height: 1.6;
+    overflow-y: auto;
+    padding: 40px 12%; /* Proporción áurea para lectura */
+    line-height: 1.85;
+    font-size: 1.15rem;
+    color: #2c2c2c;
 }
 
-/* Estilo para los versículos */
-.verse {
-    margin-bottom: 10px;
+/* Estilo de los versículos */
+.verse { 
+    margin-bottom: 14px; 
+    position: relative;
 }
 
 .verse-number {
-    font-weight: bold;
-    color: #888;
-    margin-right: 8px;
-    font-size: 0.8em;
+    font-weight: 600;
+    color: #007acc;
+    margin-right: 10px;
+    font-size: 0.75em;
+    user-select: none; /* No permite seleccionar el número para copiar texto limpio */
+}
+
+/* Efecto suave para el texto al cargar */
+#text-container {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
