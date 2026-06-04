@@ -8,44 +8,42 @@
 </head>
 <body class="theme-dark">
     <div id="app-container">
-        <button id="add-version-left" class="side-add-btn" title="Añadir versión"><span>+</span></button>
-        <button id="add-version-right" class="side-add-btn" title="Añadir versión"><span>+</span></button>
+        <!-- Sidebar Izquierdo -->
+        <aside class="sidebar" id="left-sidebar-container">
+            <div id="prev-books"></div>
+            <button id="add-version-left" class="side-add-btn" title="Añadir a la izquierda">+</button>
+        </aside>
 
-        <aside class="sidebar"><div id="prev-books"></div></aside>
-
+        <!-- Lector Central -->
         <main id="main-reader">
             <header id="reader-header">
                 <div id="group-indicator">| SECCIÓN |</div>
                 <div id="header-nav-row">
-                    <!-- Flechas delgadas y altas -->
                     <button id="prev-chapter" class="nav-arrow-btn">❮</button>
-                    
                     <div id="header-main-controls">
                         <button id="btn-open-search" class="minimal-icon-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </button>
-                        
                         <div id="title-interactive">
                             <span id="book-name-btn" class="clickable-title">Libro</span>
                             <span id="chapter-num-btn" class="clickable-title">1</span>
                         </div>
-
                         <button id="settings-btn" class="minimal-icon-btn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         </button>
                     </div>
-
                     <button id="next-chapter" class="nav-arrow-btn">❯</button>
                 </div>
             </header>
             
+            <!-- Zona de lectura con scroll -->
             <div id="text-columns-container"></div>
 
-            <!-- BUSCADOR -->
+            <!-- Capas de Modales -->
             <div id="search-modal" class="modal-overlay hidden">
                 <div id="search-card">
                     <div id="search-header-box">
-                        <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
+                        <input type="text" id="search-input" placeholder="Buscar palabra...">
                         <button id="btn-close-search" class="close-x">✕</button>
                     </div>
                     <div id="search-status-bar">
@@ -56,41 +54,19 @@
                 </div>
             </div>
 
-            <!-- TOOLBAR ACCIONES -->
-            <div id="action-toolbar" class="hidden">
-                <div id="selected-info">0</div>
-                <div class="action-buttons-group">
-                    <button id="action-copy" title="Copiar">📋</button>
-                    <button id="action-note" title="Nota">📝</button>
-                    <button id="action-fav" title="Favorito">⭐</button>
-                    <div class="color-grid">
-                        <div class="btn-color c1" data-color="#fcf6bd"></div>
-                        <div class="btn-color c2" data-color="#d0f4de"></div>
-                        <div class="btn-color c3" data-color="#ffadad"></div>
-                        <div class="btn-color c4" data-color="#a0c4ff"></div>
-                        <div class="btn-color-clear">🚫</div>
-                    </div>
-                    <button id="action-cancel" class="close-x">✕</button>
-                </div>
-            </div>
-
-            <!-- DROPDOWNS -->
-            <div id="books-dropdown" class="dropdown-overlay hidden"></div>
-            <div id="chapters-dropdown" class="dropdown-overlay hidden"></div>
-
-            <!-- AJUSTES -->
             <div id="settings-modal" class="modal-overlay hidden">
                 <div id="settings-content">
-                    <h3>Apariencia</h3>
+                    <h3>Configuración</h3>
                     <div class="setting-item">
-                        <label>Tamaño letra: <span id="font-size-value">18px</span></label>
+                        <label>Letra: <span id="font-size-value">18px</span></label>
                         <input type="range" id="font-size-slider" min="14" max="40" value="18">
                     </div>
                     <div class="setting-item">
-                        <label>Fuente</label>
+                        <label>Tipografía</label>
                         <select id="font-family-select" class="custom-select">
                             <option value="'Segoe UI', sans-serif">Moderna</option>
                             <option value="'Georgia', serif">Clásica</option>
+                            <option value="'Charter', serif">Elegante</option>
                         </select>
                     </div>
                     <div class="setting-item">
@@ -104,9 +80,35 @@
                     <button id="close-settings" class="btn-primary">Listo</button>
                 </div>
             </div>
+
+            <!-- Dropdowns flotantes -->
+            <div id="books-dropdown" class="dropdown-overlay hidden"></div>
+            <div id="chapters-dropdown" class="dropdown-overlay hidden"></div>
+            
+            <!-- Barra de acciones -->
+            <div id="action-toolbar" class="hidden">
+                <div id="selected-info">0</div>
+                <div class="action-buttons-group">
+                    <button id="action-copy" title="Copiar">📋</button>
+                    <button id="action-note" title="Nota">📝</button>
+                    <button id="action-fav" title="Favorito">⭐</button>
+                    <div class="color-grid">
+                        <div class="btn-color c1" data-color="#fdfd96"></div>
+                        <div class="btn-color c2" data-color="#d0f4de"></div>
+                        <div class="btn-color c3" data-color="#ffadad"></div>
+                        <div class="btn-color c4" data-color="#aec6cf"></div>
+                        <button class="btn-color-clear">🚫</button>
+                    </div>
+                    <button id="action-cancel" class="close-x">✕</button>
+                </div>
+            </div>
         </main>
 
-        <aside class="sidebar"><div id="next-books"></div></aside>
+        <!-- Sidebar Derecho -->
+        <aside class="sidebar" id="right-sidebar-container">
+            <div id="next-books"></div>
+            <button id="add-version-right" class="side-add-btn" title="Añadir a la derecha">+</button>
+        </aside>
     </div>
 
     <script src="./bibleData.js"></script>
