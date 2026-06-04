@@ -6,81 +6,102 @@
     <title>Biblia Master</title>
     <link rel="stylesheet" href="./css/layout.css">
 </head>
-<body>
+<body class="theme-dark">
     <div id="app-container">
+        <button id="add-version-left" class="side-add-btn" title="Añadir versión"><span>+</span></button>
+        <button id="add-version-right" class="side-add-btn" title="Añadir versión"><span>+</span></button>
+
         <aside class="sidebar"><div id="prev-books"></div></aside>
 
         <main id="main-reader">
             <header id="reader-header">
-                <div id="header-top-row">
-                    <div id="search-box">
-                        <input type="text" id="search-input" placeholder="Buscar palabra...">
-                        <button id="search-btn">🔍</button>
+                <div id="group-indicator">| SECCIÓN |</div>
+                <div id="header-nav-row">
+                    <!-- Flechas delgadas y altas -->
+                    <button id="prev-chapter" class="nav-arrow-btn">❮</button>
+                    
+                    <div id="header-main-controls">
+                        <button id="btn-open-search" class="minimal-icon-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </button>
+                        
+                        <div id="title-interactive">
+                            <span id="book-name-btn" class="clickable-title">Libro</span>
+                            <span id="chapter-num-btn" class="clickable-title">1</span>
+                        </div>
+
+                        <button id="settings-btn" class="minimal-icon-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        </button>
                     </div>
-                    <button id="settings-btn" title="Apariencia">⚙️</button>
-                    <button class="btn-add" id="add-version" title="Añadir versión">+</button>
-                </div>
-                <div id="header-bottom-row">
-                    <h1 id="current-title">Cargando...</h1>
+
+                    <button id="next-chapter" class="nav-arrow-btn">❯</button>
                 </div>
             </header>
             
             <div id="text-columns-container"></div>
 
-            <!-- PANEL DE BÚSQUEDA -->
-            <div id="search-results-container" class="hidden">
-                <div id="search-results-header">
-                    <div id="search-info-group">
-                        <h2 id="search-keyword-display">Búsqueda</h2>
-                        <span id="results-count">0 resultados</span>
+            <!-- BUSCADOR -->
+            <div id="search-modal" class="modal-overlay hidden">
+                <div id="search-card">
+                    <div id="search-header-box">
+                        <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
+                        <button id="btn-close-search" class="close-x">✕</button>
                     </div>
-                    <button id="close-search">Volver a la lectura ✕</button>
+                    <div id="search-status-bar">
+                        <h2 id="search-title-display">Resultados</h2>
+                        <span id="results-count">0 encontrados</span>
+                    </div>
+                    <div id="results-list"></div>
                 </div>
-                <div id="results-list"></div>
             </div>
 
-            <!-- BARRA DE ACCIONES -->
+            <!-- TOOLBAR ACCIONES -->
             <div id="action-toolbar" class="hidden">
-                <div id="selected-info">0 seleccionados</div>
-                <div class="action-buttons">
-                    <button id="action-copy" title="Copiar con referencia">📋</button>
+                <div id="selected-info">0</div>
+                <div class="action-buttons-group">
+                    <button id="action-copy" title="Copiar">📋</button>
+                    <button id="action-note" title="Nota">📝</button>
                     <button id="action-fav" title="Favorito">⭐</button>
-                    <div class="color-picker">
-                        <div class="btn-color yellow" data-color="#ffd700"></div>
-                        <div class="btn-color green" data-color="#90ee90"></div>
-                        <div class="btn-color pink" data-color="#ffb6c1"></div>
-                        <div class="btn-color-clear" title="Quitar marca">🚫</div>
+                    <div class="color-grid">
+                        <div class="btn-color c1" data-color="#fcf6bd"></div>
+                        <div class="btn-color c2" data-color="#d0f4de"></div>
+                        <div class="btn-color c3" data-color="#ffadad"></div>
+                        <div class="btn-color c4" data-color="#a0c4ff"></div>
+                        <div class="btn-color-clear">🚫</div>
                     </div>
-                    <button id="action-cancel">✕</button>
+                    <button id="action-cancel" class="close-x">✕</button>
                 </div>
             </div>
 
-            <!-- MODAL CONFIGURACIÓN -->
-            <div id="settings-modal" class="hidden">
+            <!-- DROPDOWNS -->
+            <div id="books-dropdown" class="dropdown-overlay hidden"></div>
+            <div id="chapters-dropdown" class="dropdown-overlay hidden"></div>
+
+            <!-- AJUSTES -->
+            <div id="settings-modal" class="modal-overlay hidden">
                 <div id="settings-content">
-                    <h2>Configuración</h2>
+                    <h3>Apariencia</h3>
                     <div class="setting-item">
-                        <label>Tamaño de letra: <span id="font-size-value">18px</span></label>
-                        <input type="range" id="font-size-slider" min="14" max="35" value="18">
+                        <label>Tamaño letra: <span id="font-size-value">18px</span></label>
+                        <input type="range" id="font-size-slider" min="14" max="40" value="18">
                     </div>
                     <div class="setting-item">
-                        <label>Tipografía</label>
+                        <label>Fuente</label>
                         <select id="font-family-select" class="custom-select">
-                            <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
-                            <option value="'Georgia', serif">Clásica (Serif)</option>
-                            <option value="'Charter', serif">Elegante (Charter)</option>
-                            <option value="'Trebuchet MS', sans-serif">Lectura (Trebuchet)</option>
+                            <option value="'Segoe UI', sans-serif">Moderna</option>
+                            <option value="'Georgia', serif">Clásica</option>
                         </select>
                     </div>
                     <div class="setting-item">
-                        <label>Tema visual</label>
+                        <label>Tema</label>
                         <div id="theme-selector">
                             <div class="theme-dot light" data-theme="theme-light"></div>
                             <div class="theme-dot dark" data-theme="theme-dark"></div>
                             <div class="theme-dot sepia" data-theme="theme-sepia"></div>
                         </div>
                     </div>
-                    <button id="close-settings" class="btn-primary">Cerrar</button>
+                    <button id="close-settings" class="btn-primary">Listo</button>
                 </div>
             </div>
         </main>

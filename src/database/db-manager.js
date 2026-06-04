@@ -30,10 +30,22 @@ function getChapter(version, book, chapter) {
 
 function searchWords(version, keyword) {
     return new Promise((resolve, reject) => {
-        // Usamos LOWER para búsqueda insensible a mayúsculas
-        const sql = `SELECT * FROM bible_verses WHERE version = ? AND LOWER(text) LIKE LOWER(?) LIMIT 200`;
-        const param = `%${keyword}%`;
-        db.all(sql, [version, param], (err, rows) => {
+        // Búsqueda de palabra exacta usando límites de espacio o puntuación
+        // Buscamos la palabra rodeada de espacios, inicios de línea o signos
+        const sql = `SELECT * FROM bible_verses 
+                     WHERE version = ? 
+                     AND (text LIKE ? OR text LIKE ? OR text LIKE ? OR text LIKE ?)
+                     LIMIT 500`;
+        
+        const params = [
+            version,
+            `${keyword} %`,   // Al inicio
+            `% ${keyword}`,   // Al final
+            `% ${keyword} %`, // En medio
+            keyword           // Palabra sola
+        ];
+
+        db.all(sql, params, (err, rows) => {
             if (err) reject(err);
             else resolve(rows);
         });
