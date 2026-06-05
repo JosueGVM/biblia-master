@@ -9,10 +9,11 @@
 <body class="theme-dark">
     <div id="app-container">
         <!-- Sidebar Izquierdo -->
-        <aside class="sidebar">
-            <div id="prev-books"></div>
-            <button id="add-version-left" class="side-add-btn" title="Añadir a la izquierda">+</button>
-        </aside>
+        <aside class="sidebar"><div id="prev-books"></div></aside>
+
+        <!-- Botones Añadir (Nivel intermedio) -->
+        <button id="add-version-left" class="side-add-btn" title="Añadir versión">+</button>
+        <button id="add-version-right" class="side-add-btn" title="Añadir versión">+</button>
 
         <main id="main-reader">
             <header id="reader-header">
@@ -36,76 +37,72 @@
             </header>
             
             <div id="text-columns-container"></div>
-
-            <!-- MODALES GLOBALES -->
-            <div id="search-modal" class="modal-overlay hidden">
-                <div id="search-card">
-                    <div id="search-header-box">
-                        <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
-                        <button id="btn-close-search" class="close-x">✕</button>
-                    </div>
-                    <div id="search-status-bar">
-                        <h2 id="search-title-display">Resultados</h2>
-                        <span id="results-count">0 encontrados</span>
-                    </div>
-                    <div id="results-list"></div>
-                </div>
-            </div>
-
-            <div id="settings-modal" class="modal-overlay hidden">
-                <div id="settings-content">
-                    <h3>Apariencia</h3>
-                    <div class="setting-item">
-                        <label>Tamaño letra: <span id="font-size-value">18px</span></label>
-                        <input type="range" id="font-size-slider" min="14" max="40" value="18">
-                    </div>
-                    <div class="setting-item">
-                        <label>Tipografía</label>
-                        <select id="font-family-select" class="custom-select">
-                            <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
-                            <option value="'Georgia', serif">Clásica (Serif)</option>
-                            <option value="'Charter', serif">Elegante (Charter)</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label>Tema</label>
-                        <div id="theme-selector-row">
-                            <div class="theme-dot light" data-theme="theme-light"></div>
-                            <div class="theme-dot dark" data-theme="theme-dark"></div>
-                            <div class="theme-dot sepia" data-theme="theme-sepia"></div>
-                        </div>
-                    </div>
-                    <button id="close-settings" class="btn-primary">Listo</button>
-                </div>
-            </div>
-
-            <div id="books-dropdown" class="dropdown-overlay hidden"></div>
-            <div id="chapters-dropdown" class="dropdown-overlay hidden"></div>
-            
-            <!-- Barra Acciones -->
-            <div id="action-toolbar" class="hidden">
-                <div id="selected-info">0</div>
-                <div class="action-buttons-group">
-                    <button id="action-copy" title="Copiar">📋</button>
-                    <button id="action-note" title="Nota">📝</button>
-                    <button id="action-fav" title="Favorito">⭐</button>
-                    <div class="color-grid">
-                        <div class="btn-color c1" data-color="#fcf6bd"></div>
-                        <div class="btn-color c2" data-color="#d0f4de"></div>
-                        <div class="btn-color c3" data-color="#ffadad"></div>
-                        <div class="btn-color c4" data-color="#a0c4ff"></div>
-                        <button class="btn-color-clear">🚫</button>
-                    </div>
-                    <button id="action-cancel" class="close-x">✕</button>
-                </div>
-            </div>
         </main>
 
         <!-- Sidebar Derecho -->
-        <aside class="sidebar">
-            <div id="next-books"></div>
-            <button id="add-version-right" class="side-add-btn">+</button>
-        </aside>
+        <aside class="sidebar"><div id="next-books"></div></aside>
+
+        <!-- CAPAS SUPERIORES (Nivel máximo de Z-index) -->
+        <div id="search-modal" class="modal-overlay hidden">
+            <div id="search-card">
+                <div id="search-header-box">
+                    <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
+                    <button id="btn-close-search" class="close-x">✕</button>
+                </div>
+                <div id="search-status-bar">
+                    <h2 id="search-title-display">Resultados</h2>
+                    <span id="results-count">0 encontrados</span>
+                </div>
+                <div id="results-list"></div>
+            </div>
+        </div>
+
+        <div id="settings-modal" class="modal-overlay hidden">
+            <div id="settings-content">
+                <h3>Apariencia</h3>
+                <div class="setting-item">
+                    <label>Tamaño letra: <span id="font-size-value">18px</span></label>
+                    <input type="range" id="font-size-slider" min="14" max="40" value="18">
+                </div>
+                <div class="setting-item">
+                    <label>Tipografía</label>
+                    <select id="font-family-select" class="custom-select">
+                        <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
+                        <option value="'Georgia', serif">Clásica (Serif)</option>
+                        <option value="'Charter', serif">Elegante (Charter)</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Tema</label>
+                    <div id="theme-selector-row">
+                        <div class="theme-dot light" data-theme="theme-light"></div>
+                        <div class="theme-dot dark" data-theme="theme-dark"></div>
+                        <div class="theme-dot sepia" data-theme="theme-sepia"></div>
+                    </div>
+                </div>
+                <button id="close-settings" class="btn-primary">Listo</button>
+            </div>
+        </div>
+
+        <div id="books-dropdown" class="dropdown-overlay hidden"></div>
+        <div id="chapters-dropdown" class="dropdown-overlay hidden"></div>
+        
+        <div id="action-toolbar" class="hidden">
+            <div id="selected-info">0</div>
+            <div class="action-buttons-group">
+                <button id="action-copy" title="Copiar">📋</button>
+                <button id="action-note" title="Nota">📝</button>
+                <button id="action-fav" title="Favorito">⭐</button>
+                <div class="color-grid">
+                    <div class="btn-color c1" data-color="#fcf6bd"></div>
+                    <div class="btn-color c2" data-color="#d0f4de"></div>
+                    <div class="btn-color c3" data-color="#ffadad"></div>
+                    <div class="btn-color c4" data-color="#a0c4ff"></div>
+                    <button class="btn-color-clear">🚫</button>
+                </div>
+                <button id="action-cancel" class="close-x">✕</button>
+            </div>
+        </div>
     </div>
 
     <script src="./bibleData.js"></script>

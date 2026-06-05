@@ -8,7 +8,6 @@ const columnsContainer = document.getElementById('text-columns-container');
 const leftSidebar = document.getElementById('prev-books');
 const rightSidebar = document.getElementById('next-books');
 
-// Mapeo de capítulos para los dropdowns
 const chapterCounts = { "Génesis": 50, "Éxodo": 40, "Levítico": 27, "Números": 36, "Deuteronomio": 34, "Josué": 24, "Jueces": 21, "Rut": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Reyes": 22, "2 Reyes": 25, "1 Crónicas": 29, "2 Crónicas": 36, "Esdras": 10, "Nehemías": 13, "Ester": 10, "Job": 42, "Salmos": 150, "Proverbios": 31, "Eclesiastés": 12, "Cantares": 8, "Isaías": 66, "Jeremías": 52, "Lamentaciones": 5, "Ezequiel": 48, "Daniel": 12, "Oseas": 14, "Joel": 3, "Amós": 9, "Abdías": 1, "Jonás": 4, "Miqueas": 7, "Nahúm": 3, "Habacuc": 3, "Sofonías": 3, "Hageo": 2, "Zacarías": 14, "Malaquías": 4, "Mateo": 28, "Marcos": 16, "Lucas": 24, "Juan": 21, "Hechos": 28, "Romanos": 16, "1 Corintios": 16, "2 Corintios": 13, "Gálatas": 6, "Efesios": 6, "Filipenses": 4, "Colosenses": 4, "1 Tesalonicenses": 5, "2 Tesalonicenses": 3, "1 Timoteo": 6, "2 Timoteo": 4, "Tito": 3, "Filemón": 1, "Hebreos": 13, "Santiago": 5, "1 Pedro": 5, "2 Pedro": 3, "1 Juan": 5, "2 Juan": 1, "3 Juan": 1, "Judas": 1, "Apocalipsis": 22 };
 
 async function init() {
@@ -20,27 +19,20 @@ async function init() {
 
 async function loadContent() {
     columnsContainer.innerHTML = "";
-    
-    // Actualizar Header
     document.getElementById('book-name-btn').innerText = currentBook;
     document.getElementById('chapter-num-btn').innerText = currentChapter;
-    
     const bookData = bibleStructure.find(b => b.name === currentBook);
     document.getElementById('group-indicator').innerText = bookData ? `| ${bookData.group.toUpperCase()} |` : "";
 
     selectedVerses = [];
     updateActionToolbar();
 
-    const biblePromise = Promise.all(activeVersions.map(v => 
-        window.api.getChapter({ version: v, book: currentBook, chapter: currentChapter })
-    ));
+    const biblePromise = Promise.all(activeVersions.map(v => window.api.getChapter({ version: v, book: currentBook, chapter: currentChapter })));
     const highlightsPromise = window.api.getHighlights({ book: currentBook, chapter: currentChapter });
 
     try {
         const [results, highlights] = await Promise.all([biblePromise, highlightsPromise]);
         results.forEach((verses, index) => renderColumn(index, activeVersions[index], verses, highlights));
-        
-        // LLAMADA A SIDEBARS
         updateSidebars(currentBook);
         setupScrollSync();
     } catch (err) { console.error(err); }
@@ -80,13 +72,8 @@ function renderColumn(index, version, verses, highlights) {
         vDiv.classList.add('verse');
         vDiv.dataset.verse = v.verse_number;
         vDiv.innerHTML = `<span class="verse-number">${v.verse_number}</span>${v.text}`;
-
         const mark = highlights.find(h => h.verse_number === v.verse_number && h.version === version);
-        if (mark) {
-            vDiv.style.backgroundColor = mark.color;
-            if (mark.color !== 'transparent') vDiv.classList.add('highlighted');
-        }
-
+        if (mark) { vDiv.style.backgroundColor = mark.color; vDiv.classList.add('highlighted'); }
         vDiv.onclick = () => toggleVerseSelection(vDiv, version, v.verse_number, v.text);
         body.appendChild(vDiv);
     });
@@ -94,84 +81,7 @@ function renderColumn(index, version, verses, highlights) {
     columnsContainer.appendChild(col);
 }
 
-// --- LÓGICA DE SIDEBAR INTELIGENTE (RECUPERADA Y PROTEGIDA) ---
-
-function updateSidebars(bookName) {
-    leftSidebar.innerHTML = ""; 
-    rightSidebar.innerHTML = "";
-
-    const currentIndex = bibleStructure.findIndex(b => b.name === bookName);
-    if (currentIndex === -1) return;
-
-    const currentGroup = bibleStructure[currentIndex].group;
-
-    const prevBooks = bibleStructure.slice(0, currentIndex);
-    const nextBooks = bibleStructure.slice(currentIndex + 1);
-
-    renderSidebarGroups(prevBooks, leftSidebar, "prev", currentGroup);
-    renderSidebarGroups(nextBooks, rightSidebar, "next", currentGroup);
-}
-
-function renderSidebarGroups(books, container, side, currentGroup) {
-    if (books.length === 0) return;
-
-    // Agrupamos los libros por su propiedad 'group'
-    const groups = {};
-    books.forEach(b => {
-        if (!groups[b.group]) groups[b.group] = [];
-        groups[b.group].push(b);
-    });
-
-    const groupNames = Object.keys(groups);
-
-    groupNames.forEach((gName, idx) => {
-        // Lógica de vecino: Abre si es el grupo que contiene al libro actual
-        // o si es el grupo inmediatamente anterior (en sidebar izquierdo)
-        // o inmediatamente posterior (en sidebar derecho)
-        const isNeighbor = (side === "prev" && idx === groupNames.length - 1) || 
-                           (side === "next" && idx === 0);
-        
-        const isOpen = isNeighbor || gName === currentGroup;
-
-        const gDiv = document.createElement('div');
-        gDiv.className = `group-container ${isOpen ? 'active' : ''}`;
-
-        const header = document.createElement('div');
-        header.className = 'group-header';
-        header.innerHTML = `<span>${gName}</span><small>${isOpen ? '▲' : '▼'}</small>`;
-        
-        // El clic manual debe funcionar siempre
-        header.onclick = () => {
-            const nowActive = gDiv.classList.toggle('active');
-            header.querySelector('small').innerText = nowActive ? '▲' : '▼';
-        };
-
-        const list = document.createElement('div');
-        list.classList.add('book-list');
-
-        groups[gName].forEach(b => {
-            const item = document.createElement('div');
-            item.classList.add('book-item');
-            item.innerText = b.name;
-            item.onclick = (e) => {
-                e.stopPropagation();
-                currentBook = b.name;
-                currentChapter = 1;
-                loadContent();
-            };
-            list.appendChild(item);
-        });
-
-        gDiv.appendChild(header);
-        gDiv.appendChild(list);
-        container.appendChild(gDiv);
-    });
-}
-
-// --- EVENTOS Y OTROS ---
-
 function setupStaticEventListeners() {
-    // Escape y Espacio
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
@@ -184,7 +94,6 @@ function setupStaticEventListeners() {
         }
     });
 
-    // Navegación
     document.getElementById('prev-chapter').onclick = () => {
         if (currentChapter > 1) { currentChapter--; loadContent(); }
         else {
@@ -201,17 +110,14 @@ function setupStaticEventListeners() {
         }
     };
 
-    // Botones Añadir
     document.getElementById('add-version-left').onclick = () => { activeVersions.unshift(allAvailableVersions[0]); loadContent(); };
     document.getElementById('add-version-right').onclick = () => { activeVersions.push(allAvailableVersions[0]); loadContent(); };
 
-    // Modales
     document.getElementById('btn-open-search').onclick = () => { document.getElementById('search-modal').classList.remove('hidden'); document.getElementById('search-input').focus(); };
     document.getElementById('btn-close-search').onclick = () => document.getElementById('search-modal').classList.add('hidden');
     document.getElementById('settings-btn').onclick = () => document.getElementById('settings-modal').classList.remove('hidden');
     document.getElementById('close-settings').onclick = () => document.getElementById('settings-modal').classList.add('hidden');
 
-    // Temas
     document.querySelectorAll('.theme-dot').forEach(dot => {
         dot.onclick = () => {
             const theme = dot.dataset.theme;
@@ -222,30 +128,28 @@ function setupStaticEventListeners() {
         };
     });
 
-    // Otros Ajustes
     document.getElementById('font-size-slider').oninput = (e) => {
         const size = e.target.value;
         document.getElementById('font-size-value').innerText = size + 'px';
         document.documentElement.style.setProperty('--font-size', size + 'px');
         localStorage.setItem('fontSize', size);
     };
-    
+
     document.getElementById('font-family-select').onchange = (e) => {
         document.documentElement.style.setProperty('--font-family', e.target.value);
         localStorage.setItem('fontFamily', e.target.value);
     };
 
-    // Dropdowns Título (Cálculo de centrado)
     document.getElementById('book-name-btn').onclick = function(e) {
         const drop = document.getElementById('books-dropdown');
         const rect = this.getBoundingClientRect();
-        drop.classList.remove('hidden');
         drop.innerHTML = "";
         bibleStructure.forEach(b => {
             const item = document.createElement('div'); item.className = "dropdown-item"; item.innerText = b.name;
             item.onclick = () => { currentBook = b.name; currentChapter = 1; drop.classList.add('hidden'); loadContent(); };
             drop.appendChild(item);
         });
+        drop.classList.remove('hidden');
         drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
@@ -253,7 +157,6 @@ function setupStaticEventListeners() {
     document.getElementById('chapter-num-btn').onclick = function(e) {
         const drop = document.getElementById('chapters-dropdown');
         const rect = this.getBoundingClientRect();
-        drop.classList.remove('hidden');
         drop.style.width = "100px";
         drop.innerHTML = "";
         const max = chapterCounts[currentBook] || 50;
@@ -262,15 +165,14 @@ function setupStaticEventListeners() {
             item.onclick = () => { currentChapter = i; drop.classList.add('hidden'); loadContent(); };
             drop.appendChild(item);
         }
-        drop.style.left = `${rect.left + (rect.width/2) - 50}px`;
+        drop.classList.remove('hidden');
+        drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
 
-    // Buscador
-    const searchInput = document.getElementById('search-input');
-    searchInput.onkeyup = async (e) => {
+    document.getElementById('search-input').onkeyup = async (e) => {
         if (e.key === "Enter") {
-            const query = searchInput.value.trim();
+            const query = e.target.value.trim();
             if (query.length < 2) return;
             const results = await window.api.search({ version: activeVersions[0], keyword: query });
             const list = document.getElementById('results-list');
@@ -280,18 +182,50 @@ function setupStaticEventListeners() {
             results.forEach(res => {
                 const div = document.createElement('div');
                 div.classList.add('search-item');
-                div.innerHTML = `<span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span><p>${res.text}</p>`;
+                div.innerHTML = `<span class="search-item-ref" style="font-weight: 800;">${res.book_name} ${res.chapter}:${res.verse_number}</span><p>${res.text}</p>`;
                 div.onclick = () => { currentBook = res.book_name; currentChapter = res.chapter; document.getElementById('search-modal').classList.add('hidden'); loadContent(); };
                 list.appendChild(div);
             });
         }
     };
 
-    // Marcatextos
     document.querySelectorAll('.btn-color').forEach(btn => btn.onclick = () => applyHighlight(btn.dataset.color));
     document.querySelector('.btn-color-clear').onclick = () => applyHighlight('transparent');
     document.getElementById('action-copy').onclick = copySelected;
     document.getElementById('action-cancel').onclick = cancelSelection;
+}
+
+function updateSidebars(bookName) {
+    leftSidebar.innerHTML = ""; rightSidebar.innerHTML = "";
+    const currentIndex = bibleStructure.findIndex(b => b.name === bookName);
+    const currentGroup = bibleStructure[currentIndex].group;
+    renderSidebarGroups(bibleStructure.slice(0, currentIndex), leftSidebar, "prev", currentGroup);
+    renderSidebarGroups(bibleStructure.slice(currentIndex + 1), rightSidebar, "next", currentGroup);
+}
+
+function renderSidebarGroups(books, container, side, currentGroup) {
+    if (books.length === 0) return;
+    const groups = {};
+    books.forEach(b => { if (!groups[b.group]) groups[b.group] = []; groups[b.group].push(b); });
+    const groupNames = Object.keys(groups);
+    groupNames.forEach((gName, idx) => {
+        const isNeighbor = (side === "prev" && idx === groupNames.length - 1) || (side === "next" && idx === 0);
+        const gDiv = document.createElement('div'); gDiv.classList.add('group-container');
+        if (isNeighbor || gName === currentGroup) gDiv.classList.add('active');
+        const header = document.createElement('div'); header.classList.add('group-header');
+        header.innerHTML = `<span>${gName}</span><small>${gDiv.classList.contains('active') ? '▲' : '▼'}</small>`;
+        header.onclick = () => {
+            const nowActive = gDiv.classList.toggle('active');
+            header.querySelector('small').innerText = nowActive ? '▲' : '▼';
+        };
+        const list = document.createElement('div'); list.classList.add('book-list');
+        groups[gName].forEach(b => {
+            const item = document.createElement('div'); item.classList.add('book-item'); item.innerText = b.name;
+            item.onclick = (e) => { e.stopPropagation(); currentBook = b.name; currentChapter = 1; loadContent(); };
+            list.appendChild(item);
+        });
+        gDiv.appendChild(header); gDiv.appendChild(list); container.appendChild(gDiv);
+    });
 }
 
 function setupScrollSync() {
