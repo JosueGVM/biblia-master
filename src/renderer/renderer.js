@@ -140,33 +140,55 @@ function setupStaticEventListeners() {
         localStorage.setItem('fontFamily', e.target.value);
     };
 
+// --- DROP. LIBROS ---
     document.getElementById('book-name-btn').onclick = function(e) {
         const drop = document.getElementById('books-dropdown');
-        const rect = this.getBoundingClientRect();
-        drop.innerHTML = "";
+        drop.innerHTML = ""; // Limpiar
         bibleStructure.forEach(b => {
-            const item = document.createElement('div'); item.className = "dropdown-item"; item.innerText = b.name;
-            item.onclick = () => { currentBook = b.name; currentChapter = 1; drop.classList.add('hidden'); loadContent(); };
+            const item = document.createElement('div'); 
+            item.className = "dropdown-item"; 
+            item.innerText = b.name;
+            item.onclick = () => { 
+                currentBook = b.name; 
+                currentChapter = 1; 
+                drop.classList.add('hidden'); 
+                loadContent(); 
+            };
             drop.appendChild(item);
         });
-        drop.classList.remove('hidden');
-        drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
+
+        // 1. Mostrar primero para que el navegador sepa cuánto mide
+        drop.classList.remove('hidden'); 
+        
+        // 2. Calcular posición exacta
+        const rect = this.getBoundingClientRect();
+        const dropWidth = drop.offsetWidth;
+        drop.style.left = `${rect.left + (rect.width / 2) - (dropWidth / 2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
 
+    // --- DROP. CAPÍTULOS ---
     document.getElementById('chapter-num-btn').onclick = function(e) {
         const drop = document.getElementById('chapters-dropdown');
-        const rect = this.getBoundingClientRect();
-        drop.style.width = "100px";
-        drop.innerHTML = "";
-        const max = chapterCounts[currentBook] || 50;
+        drop.innerHTML = ""; // Limpiar antes de llenar
+        
+        const max = chapterCounts[currentBook] || 50; 
         for (let i = 1; i <= max; i++) {
-            const item = document.createElement('div'); item.className = "dropdown-item"; item.innerText = i;
-            item.onclick = () => { currentChapter = i; drop.classList.add('hidden'); loadContent(); };
+            const item = document.createElement('div'); 
+            item.className = "dropdown-item"; 
+            item.innerText = i;
+            item.onclick = () => { 
+                currentChapter = i; 
+                drop.classList.add('hidden'); 
+                loadContent(); 
+            };
             drop.appendChild(item);
         }
+
         drop.classList.remove('hidden');
-        drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
+        const rect = this.getBoundingClientRect();
+        const dropWidth = drop.offsetWidth;
+        drop.style.left = `${rect.left + (rect.width / 2) - (dropWidth / 2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
 
