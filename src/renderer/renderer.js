@@ -291,34 +291,84 @@ function setupStaticEventListeners() {
 
     // Dropdowns Título con centrado dinámico
     document.getElementById('book-name-btn').onclick = function(e) {
-        const drop = document.getElementById('books-dropdown');
+        e.stopPropagation();
+        
+        // Obtener o crear el dropdown si no existe
+        let drop = document.getElementById('books-dropdown');
+        if (!drop) {
+            drop = document.createElement('div');
+            drop.id = 'books-dropdown';
+            drop.className = 'dropdown-overlay';
+            document.body.appendChild(drop);
+        }
+        
         const rect = this.getBoundingClientRect();
-        drop.classList.remove('hidden');
+        
         drop.innerHTML = "";
         bibleStructure.forEach(b => {
-            const item = document.createElement('div'); item.className = "dropdown-item"; item.innerText = b.name;
-            item.onclick = () => { currentBook = b.name; currentChapter = 1; drop.classList.add('hidden'); loadContent(); };
+            const item = document.createElement('div'); 
+            item.className = "dropdown-item"; 
+            item.innerText = b.name;
+            item.onclick = () => { 
+                currentBook = b.name; 
+                currentChapter = 1; 
+                drop.remove();
+                loadContent(); 
+            };
             drop.appendChild(item);
         });
+        
+        // Mostrar y posicionar
+        drop.style.display = 'flex';
         drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
-
+    
     document.getElementById('chapter-num-btn').onclick = function(e) {
-        const drop = document.getElementById('chapters-dropdown');
+        e.stopPropagation();
+        
+        // Obtener o crear el dropdown si no existe
+        let drop = document.getElementById('chapters-dropdown');
+        if (!drop) {
+            drop = document.createElement('div');
+            drop.id = 'chapters-dropdown';
+            drop.className = 'dropdown-overlay';
+            document.body.appendChild(drop);
+        }
+        
         const rect = this.getBoundingClientRect();
         drop.innerHTML = "";
         const max = chapterCounts[currentBook] || 50;
         for (let i = 1; i <= max; i++) {
-            const item = document.createElement('div'); item.className = "dropdown-item"; item.innerText = i;
-            item.onclick = () => { currentChapter = i; drop.classList.add('hidden'); loadContent(); };
+            const item = document.createElement('div'); 
+            item.className = "dropdown-item"; 
+            item.innerText = i;
+            item.onclick = () => { 
+                currentChapter = i; 
+                drop.remove();
+                loadContent(); 
+            };
             drop.appendChild(item);
         }
-        drop.classList.remove('hidden');
+        
+        // Mostrar y posicionar
+        drop.style.display = 'flex';
         drop.style.width = "100px";
         drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
+    
+    // Cerrar dropdowns al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#book-name-btn') && !e.target.closest('.dropdown-overlay')) {
+            const drop = document.getElementById('books-dropdown');
+            if (drop) drop.remove();
+        }
+        if (!e.target.closest('#chapter-num-btn') && !e.target.closest('.dropdown-overlay')) {
+            const drop = document.getElementById('chapters-dropdown');
+            if (drop) drop.remove();
+        }
+    });
 
     // Buscador
     const searchInput = document.getElementById('search-input');
