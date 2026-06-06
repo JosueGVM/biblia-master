@@ -388,7 +388,30 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 .action-buttons-group { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .action-buttons-group button { background: transparent; border: none; font-size: 1.4rem; }
 .color-grid { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 15px; }
-.btn-color { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
+
+/* Ahora: Visible en todos los temas */
+.btn-color { 
+    width: 26px; 
+    height: 26px; 
+    border-radius: 50%; 
+    border: 2px solid var(--border);  /* ✅ Borde más visible */
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);  /* ✅ Sombra */
+    transition: all 0.2s ease;
+}
+
+/* Efecto hover mejorado */
+.btn-color:hover {
+    transform: scale(1.15);  /* ✅ Crece al pasar el mouse */
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    border-color: var(--accent);
+}
+
+/* Colores específicos (ahora VISIBLES) */
+.btn-color.c1 { background-color: #fcf6bd; }  /* 🟡 Amarillo */
+.btn-color.c2 { background-color: #d0f4de; }  /* 🟢 Verde */
+.btn-color.c3 { background-color: #ffadad; }  /* 🔴 Rojo */
+.btn-color.c4 { background-color: #a0c4ff; }  /* 🔵 Azul */
+
 .btn-color-clear { background: transparent; border: none; font-size: 1.2rem; }
 
 /* =========================================

@@ -292,7 +292,7 @@ function setupStaticEventListeners() {
     // Dropdowns Título con centrado dinámico
     document.getElementById('book-name-btn').onclick = function(e) {
         e.stopPropagation();
-        
+
         // Obtener o crear el dropdown si no existe
         let drop = document.getElementById('books-dropdown');
         if (!drop) {
@@ -301,9 +301,9 @@ function setupStaticEventListeners() {
             drop.className = 'dropdown-overlay';
             document.body.appendChild(drop);
         }
-        
+
         const rect = this.getBoundingClientRect();
-        
+
         drop.innerHTML = "";
         bibleStructure.forEach(b => {
             const item = document.createElement('div'); 
@@ -317,16 +317,16 @@ function setupStaticEventListeners() {
             };
             drop.appendChild(item);
         });
-        
+
         // Mostrar y posicionar
         drop.style.display = 'flex';
         drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
-    
+
     document.getElementById('chapter-num-btn').onclick = function(e) {
         e.stopPropagation();
-        
+
         // Obtener o crear el dropdown si no existe
         let drop = document.getElementById('chapters-dropdown');
         if (!drop) {
@@ -335,7 +335,7 @@ function setupStaticEventListeners() {
             drop.className = 'dropdown-overlay';
             document.body.appendChild(drop);
         }
-        
+
         const rect = this.getBoundingClientRect();
         drop.innerHTML = "";
         const max = chapterCounts[currentBook] || 50;
@@ -350,14 +350,14 @@ function setupStaticEventListeners() {
             };
             drop.appendChild(item);
         }
-        
+
         // Mostrar y posicionar
         drop.style.display = 'flex';
         drop.style.width = "100px";
         drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
-    
+
     // Cerrar dropdowns al hacer clic fuera
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#book-name-btn') && !e.target.closest('.dropdown-overlay')) {
@@ -500,20 +500,40 @@ function showStartupSelector() {
 }
 
 // ============================================
-// ✨ FUNCIONES DE FAVORITOS
+// ✨ FUNCIONES DE FAVORITOS - MEJORADO
 // ============================================
 
 async function addToFavorites() {
     if (selectedVerses.length === 0) return;
     
     try {
-        for (const v of selectedVerses) {
+        // Agrupar versículos por libro y capítulo
+        const grouped = {};
+        selectedVerses.forEach(v => {
+            const key = `${v.book}|${v.chapter}`;
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(v);
+        });
+        
+        // Guardar como UN SOLO favorito agrupado
+        for (const key in grouped) {
+            const verses = grouped[key];
+            const first = verses[0];
+            
+            // Crear texto concatenado de todos los versículos
+            const combinedText = verses.map(v => `${v.verse}. ${v.text}`).join(" ");
+            const verseRange = verses.length > 1 
+                ? `${verses[0].verse}-${verses[verses.length-1].verse}`
+                : `${verses[0].verse}`;
+            
             await window.api.saveFavorite({ 
-                book: v.book, 
-                chapter: v.chapter, 
-                verse: v.verse, 
-                text: v.text, 
-                version: v.version 
+                book: first.book, 
+                chapter: first.chapter, 
+                verse: verseRange,  // Rango de versículos
+                text: combinedText,  // Texto combinado
+                version: first.version 
             });
         }
         
@@ -546,14 +566,17 @@ async function loadFavorites() {
             const div = document.createElement('div');
             div.classList.add('favorite-item');
             
+            // Referencia del libro y capítulo
             const ref = document.createElement('div');
             ref.classList.add('favorite-ref');
             ref.innerText = `${fav.book_name} ${fav.chapter}:${fav.verse_number}`;
             
+            // Texto del/los versículo(s)
             const text = document.createElement('div');
             text.classList.add('favorite-text');
             text.innerText = fav.text;
             
+            // Botones de acción
             const actions = document.createElement('div');
             actions.classList.add('favorite-actions');
             
@@ -578,6 +601,7 @@ async function loadFavorites() {
             actions.appendChild(goBtn);
             actions.appendChild(delBtn);
             
+            // Armar el contenedor
             div.appendChild(ref);
             div.appendChild(text);
             div.appendChild(actions);
