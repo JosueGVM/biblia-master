@@ -3,6 +3,7 @@ let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
 let selectedVerses = [];
+let favoritesCache = []; // ✨ NUEVA: para cachear favoritos
 
 const columnsContainer = document.getElementById('text-columns-container');
 const leftSidebar = document.getElementById('prev-books');
@@ -255,6 +256,14 @@ function setupStaticEventListeners() {
 
     document.getElementById('btn-open-search').onclick = () => { document.getElementById('search-modal').classList.remove('hidden'); document.getElementById('search-input').focus(); };
     document.getElementById('btn-close-search').onclick = () => document.getElementById('search-modal').classList.add('hidden');
+    
+        // ✨ EVENTOS DE FAVORITOS
+    document.getElementById('btn-open-favorites').onclick = async () => { 
+        document.getElementById('favorites-modal').classList.remove('hidden'); 
+        await loadFavorites(); 
+    };
+    document.getElementById('btn-close-favorites').onclick = () => document.getElementById('favorites-modal').classList.add('hidden');
+
     document.getElementById('settings-btn').onclick = () => document.getElementById('settings-modal').classList.remove('hidden');
     document.getElementById('close-settings').onclick = () => document.getElementById('settings-modal').classList.add('hidden');
 
@@ -336,7 +345,9 @@ function setupStaticEventListeners() {
     document.querySelectorAll('.btn-color').forEach(btn => btn.onclick = () => applyHighlight(btn.dataset.color));
     document.querySelector('.btn-color-clear').onclick = () => applyHighlight('transparent');
     document.getElementById('action-copy').onclick = copySelected;
+    document.getElementById('action-fav').onclick = addToFavorites; // ✨ NUEVA FUNCIÓN
     document.getElementById('action-cancel').onclick = cancelSelection;
+    
 }
 
 // --- FUNCIONES DE SOPORTE ---
@@ -413,6 +424,8 @@ function loadAppSettings() {
     document.getElementById('font-size-value').innerText = savedSize + 'px';
     document.getElementById('font-family-select').value = savedFont;
     document.querySelectorAll('.theme-dot').forEach(dot => { if (dot.dataset.theme === savedTheme) dot.classList.add('active'); });
+      // ✨ Cargar favoritos al iniciar
+    loadFavorites();
 }
 
 function showStartupSelector() {
@@ -434,6 +447,165 @@ function showStartupSelector() {
         };
         list.appendChild(btn);
     });
+}
+
+// ============================================
+// ✨ FUNCIONES DE FAVORITOS
+// ============================================
+
+async function addToFavorites() {
+    if (selectedVerses.length === 0) return;
+    
+    try {
+        for (const v of selectedVerses) {
+            await window.api.saveFavorite({ 
+                book: v.book, 
+                chapter: v.chapter, 
+                verse: v.verse, 
+                text: v.text, 
+                version: v.version 
+            });
+        }
+        
+        // Feedback visual
+        const btn = document.getElementById('action-fav');
+        const originalText = btn.innerText;
+        btn.innerText = "✅";
+        setTimeout(() => { btn.innerText = originalText; }, 1000);
+        
+        // Recargar favoritos
+        favoritesCache = await window.api.getFavorites();
+        
+    } catch (err) {
+        console.error("Error al guardar favorito:", err);
+    }
+}
+
+async function loadFavorites() {
+    try {
+        favoritesCache = await window.api.getFavorites();
+        const list = document.getElementById('favorites-list');
+        list.innerHTML = "";
+        
+        if (favoritesCache.length === 0) {
+            list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">📭 No tienes favoritos aún</div>';
+            return;
+        }
+        
+        favoritesCache.forEach(fav => {
+            const div = document.createElement('div');
+            div.classList.add('favorite-item');
+            
+            const ref = document.createElement('div');
+            ref.classList.add('favorite-ref');
+            ref.innerText = `${fav.book_name} ${fav.chapter}:${fav.verse_number}`;
+            
+            const text = document.createElement('div');
+            text.classList.add('favorite-text');
+            text.innerText = fav.text;
+            
+            const actions = document.createElement('div');
+            actions.classList.add('favorite-actions');
+            
+            // Botón: Ir al versículo
+            const goBtn = document.createElement('button');
+            goBtn.classList.add('favorite-action-btn');
+            goBtn.innerText = "📖 Ir";
+            goBtn.onclick = (e) => {
+                e.stopPropagation();
+                goToFavorite(fav);
+            };
+            
+            // Botón: Eliminar
+            const delBtn = document.createElement('button');
+            delBtn.classList.add('favorite-action-btn');
+            delBtn.innerText = "🗑️ Eliminar";
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteFavorite(fav);
+            };
+            
+            actions.appendChild(goBtn);
+            actions.appendChild(delBtn);
+            
+            div.appendChild(ref);
+            div.appendChild(text);
+            div.appendChild(actions);
+            
+            list.appendChild(div);
+        });
+        
+    } catch (err) {
+        console.error("Error al cargar favoritos:", err);
+    }
+}
+
+async function goToFavorite(fav) {
+    // Cambiar libro y capítulo
+    currentBook = fav.book_name;
+    currentChapter = fav.chapter;
+    
+    // Cargar el contenido
+    await loadContent();
+    
+    // Cerrar modal
+    document.getElementById('favorites-modal').classList.add('hidden');
+    
+    // Esperar a que el DOM se renderice
+    setTimeout(() => {
+        scrollToVerse(fav.verse_number);
+    }, 100);
+}
+
+function scrollToVerse(verseNumber) {
+    // Encontrar el elemento del versículo
+    const verseEl = document.querySelector(`.verse[data-verse="${verseNumber}"]`);
+    
+    if (!verseEl) {
+        console.warn(`Versículo ${verseNumber} no encontrado`);
+        return;
+    }
+    
+    // Obtener el contenedor (columna)
+    const column = verseEl.closest('.version-column');
+    
+    if (!column) return;
+    
+    // Calcular la posición para centrar
+    const verseTop = verseEl.offsetTop;
+    const columnHeight = column.clientHeight;
+    const verseHeight = verseEl.offsetHeight;
+    
+    // Scroll suave al centro
+    const targetScroll = verseTop - (columnHeight / 2) + (verseHeight / 2);
+    
+    column.scrollTo({
+        top: targetScroll,
+        behavior: 'smooth'
+    });
+    
+    // Highlight temporal para indicar dónde estamos
+    verseEl.classList.add('selected');
+    setTimeout(() => {
+        verseEl.classList.remove('selected');
+    }, 2000);
+}
+
+async function deleteFavorite(fav) {
+    try {
+        await window.api.removeFavorite({
+            book: fav.book_name,
+            chapter: fav.chapter,
+            verse: fav.verse_number,
+            version: fav.version
+        });
+        
+        // Recargar lista
+        await loadFavorites();
+        
+    } catch (err) {
+        console.error("Error al eliminar favorito:", err);
+    }
 }
 
 window.addEventListener('DOMContentLoaded', init);

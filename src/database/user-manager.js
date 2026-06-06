@@ -33,6 +33,17 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_name TEXT, chapter INTEGER, verse_number INTEGER, content TEXT, version TEXT
     )`);
+    // ✨ NUEVA TABLA: FAVORITOS
+    db.run(`CREATE TABLE IF NOT EXISTS favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_name TEXT, 
+        chapter INTEGER, 
+        verse_number INTEGER, 
+        text TEXT, 
+        version TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(book_name, chapter, verse_number, version)
+    )`);
 });
 
 function saveHighlight(data) {
@@ -59,4 +70,65 @@ function getHighlights(book, chapter) {
     });
 }
 
-module.exports = { saveHighlight, getHighlights };
+// ✨ NUEVAS FUNCIONES DE FAVORITOS
+
+function saveFavorite(data) {
+    return new Promise((resolve, reject) => {
+        db.run(
+            `INSERT OR IGNORE INTO favorites (book_name, chapter, verse_number, text, version) VALUES (?,?,?,?,?)`,
+            [data.book, data.chapter, data.verse, data.text, data.version],
+            (err) => {
+                if (err) reject(err); 
+                else resolve({ success: true });
+            }
+        );
+    });
+}
+
+function getFavorites() {
+    return new Promise((resolve, reject) => {
+        db.all(
+            `SELECT * FROM favorites ORDER BY created_at DESC`,
+            [],
+            (err, rows) => {
+                if (err) reject(err); 
+                else resolve(rows || []);
+            }
+        );
+    });
+}
+
+function removeFavorite(data) {
+    return new Promise((resolve, reject) => {
+        db.run(
+            `DELETE FROM favorites WHERE book_name=? AND chapter=? AND verse_number=? AND version=?`,
+            [data.book, data.chapter, data.verse, data.version],
+            (err) => {
+                if (err) reject(err); 
+                else resolve({ deleted: true });
+            }
+        );
+    });
+}
+
+function isFavorite(data) {
+    return new Promise((resolve, reject) => {
+        db.get(
+            `SELECT id FROM favorites WHERE book_name=? AND chapter=? AND verse_number=? AND version=?`,
+            [data.book, data.chapter, data.verse, data.version],
+            (err, row) => {
+                if (err) reject(err); 
+                else resolve(row ? true : false);
+            }
+        );
+    });
+}
+
+module.exports = { 
+    saveHighlight, 
+    getHighlights,
+    saveFavorite,
+    getFavorites,
+    removeFavorite,
+    isFavorite
+};
