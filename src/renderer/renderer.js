@@ -1,4 +1,4 @@
-let activeVersions = ['RV1960']; 
+let activeVersions = []; //Empezamos vacío, obliga a seleccionar una versión disponible para comenzar la lectura
 let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
@@ -12,10 +12,44 @@ const rightSidebar = document.getElementById('next-books');
 const chapterCounts = { "Génesis": 50, "Éxodo": 40, "Levítico": 27, "Números": 36, "Deuteronomio": 34, "Josué": 24, "Jueces": 21, "Rut": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Reyes": 22, "2 Reyes": 25, "1 Crónicas": 29, "2 Crónicas": 36, "Esdras": 10, "Nehemías": 13, "Ester": 10, "Job": 42, "Salmos": 150, "Proverbios": 31, "Eclesiastés": 12, "Cantares": 8, "Isaías": 66, "Jeremías": 52, "Lamentaciones": 5, "Ezequiel": 48, "Daniel": 12, "Oseas": 14, "Joel": 3, "Amós": 9, "Abdías": 1, "Jonás": 4, "Miqueas": 7, "Nahúm": 3, "Habacuc": 3, "Sofonías": 3, "Hageo": 2, "Zacarías": 14, "Malaquías": 4, "Mateo": 28, "Marcos": 16, "Lucas": 24, "Juan": 21, "Hechos": 28, "Romanos": 16, "1 Corintios": 16, "2 Corintios": 13, "Gálatas": 6, "Efesios": 6, "Filipenses": 4, "Colosenses": 4, "1 Tesalonicenses": 5, "2 Tesalonicenses": 3, "1 Timoteo": 6, "2 Timoteo": 4, "Tito": 3, "Filemón": 1, "Hebreos": 13, "Santiago": 5, "1 Pedro": 5, "2 Pedro": 3, "1 Juan": 5, "2 Juan": 1, "3 Juan": 1, "Judas": 1, "Apocalipsis": 22 };
 
 async function init() {
+    console.log("Iniciando aplicación...");
+    //1. Cargamos las versiones de bibles.db
     allAvailableVersions = await window.api.getVersions();
+
     loadAppSettings();
     setupStaticEventListeners();
-    loadContent();
+
+    //2. Verificamos si hay versiones encontradas
+    if (activeVersions.length === 0) {
+        showStartUpSelector();
+    } else {
+        console.error("No hay versiones activas disponibles.");
+        // Fallback: si no hay nada, al menos intenta cargar Génesis con algo
+        loadContent();
+    }
+}
+
+function showStartUpSelector() {
+    const modal = document.getElementById('startup-modal');
+    const list = document.getElementById('startup-version-list');
+
+    if (!modal || !list) return;
+
+    list.innerHTML = ""; //Limpiamos
+    modal.classList.remove('hidden'); //Aseguramos que se vea
+
+    allAvailableVersions.forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = "startup-card-btn";
+        btn.innerText = v; // Siglas de la versión
+
+        btn.onclick = () => {
+            activeVersions = [v]; // Establecemos la versión elegida
+            modal.classList.add('hidden'); // Ocultamos el modal
+            loadContent(); // Cargamos Génesis 1 de esa versión
+        };
+        list.appendChild(btn);
+    });
 }
 
 async function loadContent() {
@@ -184,6 +218,12 @@ function renderSidebarGroups(books, container, side, currentGroup, globalPrevGro
 function setupStaticEventListeners() {
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            // Solo permitimos cerrar si ya hay una versión activa cargada
+            if (activeVersions.length > 0) {
+                document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
+            } else {
+                console.log("Debes seleccionar una versión antes de cerrar");
+            }
             document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
             cancelSelection();
         }
@@ -373,6 +413,27 @@ function loadAppSettings() {
     document.getElementById('font-size-value').innerText = savedSize + 'px';
     document.getElementById('font-family-select').value = savedFont;
     document.querySelectorAll('.theme-dot').forEach(dot => { if (dot.dataset.theme === savedTheme) dot.classList.add('active'); });
+}
+
+function showStartupSelector() {
+    const modal = document.getElementById('startup-modal');
+    const list = document.getElementById('startup-version-list');
+    if (!modal || !list) return;
+
+    list.innerHTML = "";
+    modal.classList.remove('hidden');
+
+    allAvailableVersions.forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = "startup-card-btn";
+        btn.innerText = v; // Siglas de la versión
+        btn.onclick = () => {
+            activeVersions = [v]; // Establecemos la versión elegida
+            modal.classList.add('hidden'); // Ocultamos el modal
+            loadContent(); // Cargamos Génesis 1 de esa versión
+        };
+        list.appendChild(btn);
+    });
 }
 
 window.addEventListener('DOMContentLoaded', init);

@@ -390,3 +390,46 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 .color-grid { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 15px; }
 .btn-color { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); }
 .btn-color-clear { background: transparent; border: none; font-size: 1.2rem; }
+
+/* =========================================
+   9. PANTALLA DE INICIO (VERSION CARDS)
+   ========================================= */
+
+#startup-box {
+    background: var(--bg-column);
+    padding: 40px;
+    border-radius: 20px;
+    width: 600px;
+    max-width: 90vw;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0,6);
+    text-align: center;
+}
+
+    /* El GRID de tarjetas de versiones */
+#startup-version-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.startup-card-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 30px 10px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    border-radius: 15px;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.startup-card-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    border-color: var(--accent);
+}
