@@ -99,9 +99,10 @@ function renderColumn(index, version, verses, highlights) {
     });
     select.addEventListener('change', (e) => { activeVersions[index] = e.target.value; loadContent(); });
     
-    const removeBtn = document.createElement('span');
+    const removeBtn = document.createElement('button');  // ✅ Button en lugar de span
     removeBtn.classList.add('remove-col');
     removeBtn.innerHTML = '✕';
+    removeBtn.title = 'Eliminar columna';  // ✅ Tooltip al pasar mouse
     removeBtn.onclick = () => { if (activeVersions.length > 1) { activeVersions.splice(index, 1); loadContent(); }};
 
     const wrap = document.createElement('div');
