@@ -364,3 +364,37 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 .remove-col:hover {
     color: #ff6b6b; border-color: #ff6b6b; background: rgba(255, 107, 107, 0.1); transform: scale(1.1); /* Agranda 10% */
 }
+
+/* =========================================
+    11. MODAL DE NOTAS PERSONALES
+    ========================================= */
+
+    /* estilo del botón de notas en el HEADER */
+#btn-open-notes svg { fill:none; transition: all 0.3s ease; }
+#btn-open-notes:hover svg { fill: var(--accent); stroke: var(--accent); transform: scale(1.1); }
+
+    /* estilo del botón de notas en la lista de acciones */
+.note-item {
+    padding: 15px; border-bottom: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px;
+    transition: all 0.2s;
+}
+.note-item:hover { background: var(--hover-color); }
+
+.note-content {
+    font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-top: 5px; 
+    white-space: pre-wrap; /* mantiene los saltos de línea */
+}
+
+/* Estilo para el área de texto del editor */
+#note-textarea { caret-color: var(--accent); }
+#note-textarea::-webkit-scrollbar { width: 4px; } /* Scroll delgado p. el área de texto */
+#note-textarea:focus {
+    border-color: var(--accent);
+}
+
+/* Formato de la referencia en la lista de notas */
+.note-ref {
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 0.9rem;
+}

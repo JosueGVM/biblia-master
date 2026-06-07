@@ -124,11 +124,35 @@ function isFavorite(data) {
     });
 }
 
+// FUNCIONES DE NOTAS:
+function saveNote(data) {
+    return new Promise((resolve, reject) => {
+        const sql = `INSERT INTO notes (book_name, chapter, verse_number, content, version) VALUES (?, ?, ?, ?, ?)`;
+        db.run(sql, [data.book, data.chapter, data.verse, data.content, data.version],
+            function(err){
+                if (err) reject(err); else resolve({ id: this.lastID });
+            });
+    });
+}
+
+function getNotes() {
+    return new Promise((resolve, reject) => {
+        db.all(`SELECT * FROM notes ORDER BY timestamp DESC`, [], (err, rows) => {
+            if (err) reject(err); else resolve(rows);
+        });
+    });
+}
+
+function deleteNote(id) {
+    return new Promise((resolve, reject) => {
+        db.run(`DELETE FROM notes WHERE id = ?`, [id], (err) => {
+            if (err) reject(err); else resolve({ success: true });
+        });
+    });
+}
+
 module.exports = { 
-    saveHighlight, 
-    getHighlights,
-    saveFavorite,
-    getFavorites,
-    removeFavorite,
-    isFavorite
+    saveHighlight, getHighlights,
+    saveFavorite, getFavorites, removeFavorite, isFavorite,
+    saveNote, getNotes, deleteNote
 };

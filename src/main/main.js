@@ -29,11 +29,16 @@ ipcMain.handle('search', async (e, d) => await dbManager.searchWords(d.version, 
 ipcMain.handle('save-highlight', async (e, d) => await userManager.saveHighlight(d));
 ipcMain.handle('get-highlights', async (e, d) => await userManager.getHighlights(d.book, d.chapter));
 
-// ✨ HANDLES DE USUARIO (FAVORITOS)
+// HANDLES DE USUARIO (FAVORITOS)
 ipcMain.handle('save-favorite', async (e, d) => await userManager.saveFavorite(d));
 ipcMain.handle('get-favorites', async (e) => await userManager.getFavorites());
 ipcMain.handle('remove-favorite', async (e, d) => await userManager.removeFavorite(d));
 ipcMain.handle('is-favorite', async (e, d) => await userManager.isFavorite(d));
+
+// HANDLES DE USUARIO (NOTAS)
+ipcMain.handle('save-note', async (e, d) => await userManager.saveNote(d));
+ipcMain.handle('get-notes', async () => await userManager.getNotes());
+ipcMain.handle('delete-note', async (e, id) => await userManager.deleteNote(id));
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -12,4 +12,7 @@ contextBridge.exposeInMainWorld('api', {
     getFavorites: () => ipcRenderer.invoke('get-favorites'),
     removeFavorite: (data) => ipcRenderer.invoke('remove-favorite', data),
     isFavorite: (data) => ipcRenderer.invoke('is-favorite', data),
+    saveNote: (data) => ipcRenderer.invoke('save-note', data),
+    getNotes: () => ipcRenderer.invoke('get-notes'),
+    deleteNote: (id) => ipcRenderer.invoke('delete-note', id)
 });

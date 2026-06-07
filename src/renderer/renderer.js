@@ -219,22 +219,28 @@ function renderSidebarGroups(books, container, side, currentGroup, globalPrevGro
 
 function setupStaticEventListeners() {
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            // Solo permitimos cerrar si ya hay una versión activa cargada
-            if (activeVersions.length > 0) {
-                document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
-            } else {
-                console.log("Debes seleccionar una versión antes de cerrar");
+    // 1. Manejo de la tecla Escape (Cerrar todo)
+    if (e.key === 'Escape') {
+        // Añadimos el nuevo modal del editor de notas a la lista de lo que se cierra con ESC
+        document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
+        cancelSelection();
+    }
+
+    // 2. Manejo de la tecla Espacio (Buscador)
+    // CORRECCIÓN: Ahora también comprobamos que NO estemos en un TEXTAREA
+    if (e.code === 'Space') {
+        const activeTag = document.activeElement.tagName;
+        
+        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+            e.preventDefault(); // Evita que la página salte hacia abajo
+            const modal = document.getElementById('search-modal');
+            if(modal) { 
+                modal.classList.remove('hidden'); 
+                document.getElementById('search-input').focus(); 
             }
-            document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
-            cancelSelection();
         }
-        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
-            e.preventDefault();
-            document.getElementById('search-modal').classList.remove('hidden');
-            document.getElementById('search-input').focus();
-        }
-    });
+    }
+});
 
     document.getElementById('prev-chapter').onclick = () => {
         if (currentChapter > 1) { currentChapter--; loadContent(); }
@@ -399,6 +405,17 @@ function setupStaticEventListeners() {
     document.getElementById('action-fav').onclick = addToFavorites; // ✨ NUEVA FUNCIÓN
     document.getElementById('action-cancel').onclick = cancelSelection;
     
+     // Botón para abrir la lista de notas (Header)
+    document.getElementById('btn-open-notes').onclick = loadNotes;
+    document.getElementById('btn-close-notes').onclick = () => document.getElementById('notes-modal').classList.add('hidden');
+
+    // Botón para abrir el editor de notas (Barra de acciones)
+    document.getElementById('action-note').onclick = openNoteEditor;
+
+    // Botones dentro del editor de notas
+    document.getElementById('btn-cancel-note').onclick = () => document.getElementById('note-editor-modal').classList.add('hidden');
+    document.getElementById('btn-save-note').onclick = saveCurrentNote;
+
 }
 
 // --- FUNCIONES DE SOPORTE ---
@@ -682,5 +699,81 @@ async function deleteFavorite(fav) {
         console.error("Error al eliminar favorito:", err);
     }
 }
+
+// FUNCIONES DE EDITOR DE NOTAS
+function openNoteEditor() {
+    if (selectedVerses.length === 0) return;
+    
+    selectedVerses.sort((a, b) => a.verse - b.verse);
+    const first = selectedVerses[0];
+    const last = selectedVerses[selectedVerses.length - 1];
+    const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
+    
+    const refText = `${first.book} ${first.chapter}:${range}`;
+    document.getElementById('note-editor-ref').innerText = refText;
+    document.getElementById('note-textarea').value = ""; // Limpiar
+    document.getElementById('note-editor-modal').classList.remove('hidden');
+    document.getElementById('note-textarea').focus();
+}
+
+async function saveCurrentNote() {
+    const content = document.getElementById('note-textarea').value.trim();
+    if (!content) return;
+
+    const first = selectedVerses[0];
+    const last = selectedVerses[selectedVerses.length - 1];
+    const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
+
+    await window.api.saveNote({
+        book: first.book,
+        chapter: first.chapter,
+        verse: range.toString(),
+        content: content,
+        version: first.version
+    });
+
+    document.getElementById('note-editor-modal').classList.add('hidden');
+    cancelSelection();
+    // Opcional: mostrar un aviso de guardado
+}
+
+async function loadNotes() {
+    const notes = await window.api.getNotes();
+    const list = document.getElementById('notes-list');
+    list.innerHTML = "";
+    document.getElementById('notes-modal').classList.remove('hidden');
+
+    if (notes.length === 0) {
+        list.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>No tienes notas guardadas.</p>";
+        return;
+    }
+
+    notes.forEach(n => {
+        const div = document.createElement('div');
+        div.className = "note-item";
+        div.innerHTML = `
+            <div class="fav-item-header">
+                <span class="note-ref">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
+                <button class="btn-delete-fav" onclick="event.stopPropagation(); window.deleteNoteBtn(${n.id})">✕</button>
+            </div>
+            <div class="note-content">${n.content}</div>
+        `;
+        div.onclick = () => {
+            currentBook = n.book_name;
+            currentChapter = n.chapter;
+            document.getElementById('notes-modal').classList.add('hidden');
+            const verseToScroll = n.verse_number.toString().split('-')[0];
+            loadContent(verseToScroll);
+        };
+        list.appendChild(div);
+    });
+}
+
+window.deleteNoteBtn = async (id) => {
+    if(confirm("¿Eliminar esta nota?")) {
+        await window.api.deleteNote(id);
+        loadNotes();
+    }
+};
 
 window.addEventListener('DOMContentLoaded', init);
