@@ -240,7 +240,7 @@ function setupStaticEventListeners() {
             }
         }
     }
-});
+    });
 
     document.getElementById('prev-chapter').onclick = () => {
         if (currentChapter > 1) { currentChapter--; loadContent(); }

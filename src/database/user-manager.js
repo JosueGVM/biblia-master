@@ -31,7 +31,7 @@ db.serialize(() => {
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book_name TEXT, chapter INTEGER, verse_number INTEGER, content TEXT, version TEXT
+        book_name TEXT, chapter INTEGER, verse_number INTEGER, content TEXT, version TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     // ✨ NUEVA TABLA: FAVORITOS
     db.run(`CREATE TABLE IF NOT EXISTS favorites (
