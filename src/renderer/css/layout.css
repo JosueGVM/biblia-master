@@ -291,7 +291,7 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 }
 
 #btn-open-favorites:hover .star-icon {
-    fill: var(--accent); stroke: var(--accent);
+    fill: none; stroke: var(--accent);
 }
 
 #btn-open-favorites.active .star-icon {
@@ -321,8 +321,8 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 }
 
 .favorite-item {
-    padding: 15px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; 
-    background: var(--bg-input); transition: all 0.2s ease; cursor: pointer;
+    padding: 15px; border-bottom: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; 
+    transition: all 0.2s ease;
 }
 
 .favorite-item:hover {
@@ -343,7 +343,7 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 
 .favorite-action-btn {
     background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 10px; 
-    border-radius: 5px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+    border-radius: 5px 12px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
 }
 
 .favorite-action-btn:hover {
@@ -368,21 +368,44 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 /* =========================================
     11. MODAL DE NOTAS PERSONALES
     ========================================= */
-
+#notes-header-box {
+    padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; 
+    border-bottom: 1px solid var(--border); background: var(--bg-header);
+}
     /* estilo del botón de notas en el HEADER */
 #btn-open-notes svg { fill:none; transition: all 0.3s ease; }
-#btn-open-notes:hover svg { fill: var(--accent); stroke: var(--accent); transform: scale(1.1); }
+#btn-open-notes:hover svg { fill: none; stroke: var(--accent); }
 
     /* estilo del botón de notas en la lista de acciones */
 .note-item {
     padding: 15px; border-bottom: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px;
     transition: all 0.2s;
 }
-.note-item:hover { background: var(--hover-color); }
+.note-item:hover { background: var(--hover-color); border-color: var(--accent); transform: translateX(5px); }
 
 .note-content {
     font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-top: 5px; 
     white-space: pre-wrap; /* mantiene los saltos de línea */
+}
+.note-ref {
+    color: var(--accent); font-weight: 800; font-size: 0.95rem; display: block; margin-bottom: 8px;
+}
+
+/* Botones de acción (inferior derecha) */
+.item-footer-actions {
+    display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;
+    padding-top: 12px;
+}
+
+/* Botón pequeño de acción (IR, EDITAR, ELIMINAR) */
+.btn-small-action {
+    background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main); padding: 5px 12px;
+    border-radius: 5px 12px; font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; 
+    gap: 5px; transition: all 0.2s ease;
+}
+
+.btn-small-action:hover {
+    border-color: var(--accent); color: var(--accent); background: transparent;
 }
 
 /* Estilo para el área de texto del editor */

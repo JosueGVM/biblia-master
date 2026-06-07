@@ -39,6 +39,7 @@ ipcMain.handle('is-favorite', async (e, d) => await userManager.isFavorite(d));
 ipcMain.handle('save-note', async (e, d) => await userManager.saveNote(d));
 ipcMain.handle('get-notes', async () => await userManager.getNotes());
 ipcMain.handle('delete-note', async (e, id) => await userManager.deleteNote(id));
+ipcMain.handle('update-note', async (e, { id, content }) => await userManager.updateNote(id, content));
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

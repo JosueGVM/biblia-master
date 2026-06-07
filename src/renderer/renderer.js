@@ -3,7 +3,8 @@ let allAvailableVersions = [];
 let currentBook = 'Génesis';
 let currentChapter = 1;
 let selectedVerses = [];
-let favoritesCache = []; // ✨ NUEVA: para cachear favoritos
+let favoritesCache = []; // ✨ para cachear favoritos
+let editingNoteId = null; // ✨ para saber si estamos editando o creando una nota
 
 const columnsContainer = document.getElementById('text-columns-container');
 const leftSidebar = document.getElementById('prev-books');
@@ -410,7 +411,7 @@ function setupStaticEventListeners() {
     document.getElementById('btn-close-notes').onclick = () => document.getElementById('notes-modal').classList.add('hidden');
 
     // Botón para abrir el editor de notas (Barra de acciones)
-    document.getElementById('action-note').onclick = openNoteEditor;
+    document.getElementById('action-note').onclick = () => openNoteEditor();
 
     // Botones dentro del editor de notas
     document.getElementById('btn-cancel-note').onclick = () => document.getElementById('note-editor-modal').classList.add('hidden');
@@ -701,41 +702,68 @@ async function deleteFavorite(fav) {
 }
 
 // FUNCIONES DE EDITOR DE NOTAS
-function openNoteEditor() {
-    if (selectedVerses.length === 0) return;
-    
-    selectedVerses.sort((a, b) => a.verse - b.verse);
-    const first = selectedVerses[0];
-    const last = selectedVerses[selectedVerses.length - 1];
-    const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
-    
-    const refText = `${first.book} ${first.chapter}:${range}`;
-    document.getElementById('note-editor-ref').innerText = refText;
-    document.getElementById('note-textarea').value = ""; // Limpiar
-    document.getElementById('note-editor-modal').classList.remove('hidden');
-    document.getElementById('note-textarea').focus();
+function openNoteEditor(existingNote = null) {
+    const modal = document.getElementById('note-editor-modal');
+    const textarea = document.getElementById('note-textarea');
+    const refLabel = document.getElementById('note-editor-ref');
+
+    if (existingNote) {
+        // MODO EDICIÓN
+        editingNoteId = existingNote.id;
+        refLabel.innerText = `Editando: ${existingNote.ref}`;
+        textarea.value = existingNote.content;
+    } else {
+        // MODO NUEVA NOTA
+        if (selectedVerses.length === 0) return;
+        editingNoteId = null;
+        selectedVerses.sort((a, b) => a.verse - b.verse);
+        const first = selectedVerses[0];
+        const last = selectedVerses[selectedVerses.length - 1];
+        const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
+        refLabel.innerText = `${first.book} ${first.chapter}:${range}`;
+        textarea.value = "";
+    }
+    modal.classList.remove('hidden');
+    textarea.focus();
 }
 
 async function saveCurrentNote() {
     const content = document.getElementById('note-textarea').value.trim();
     if (!content) return;
 
-    const first = selectedVerses[0];
-    const last = selectedVerses[selectedVerses.length - 1];
-    const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
-
-    await window.api.saveNote({
-        book: first.book,
-        chapter: first.chapter,
-        verse: range.toString(),
-        content: content,
-        version: first.version
-    });
+    if (editingNoteId) {
+        // Actualizar nota existente
+        await window.api.updateNote(editingNoteId, content);
+        editingNoteId = null;
+    } else {
+        // Guardar nota nueva
+        const first = selectedVerses[0];
+        const last = selectedVerses[selectedVerses.length - 1];
+        const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
+        await window.api.saveNote({
+            book: first.book, chapter: first.chapter, verse: range.toString(),
+            content: content, version: first.version
+        });
+    }
 
     document.getElementById('note-editor-modal').classList.add('hidden');
     cancelSelection();
-    // Opcional: mostrar un aviso de guardado
+    // Si el modal de la lista estaba abierto, lo refrescamos
+    if (!document.getElementById('notes-modal').classList.contains('hidden')) loadNotes();
 }
+
+// --- AYUDANTES PARA LOS BOTONES (Globales) ---
+window.editNote = (id, ref, content) => {
+    document.getElementById('notes-modal').classList.add('hidden');
+    openNoteEditor({ id, ref, content });
+};
+
+window.deleteNoteBtn = async (id) => {
+    if (confirm("¿Eliminar esta nota?")) {
+        await window.api.deleteNote(id);
+        loadNotes();
+    }
+};
 
 async function loadNotes() {
     const notes = await window.api.getNotes();
@@ -743,28 +771,26 @@ async function loadNotes() {
     list.innerHTML = "";
     document.getElementById('notes-modal').classList.remove('hidden');
 
-    if (notes.length === 0) {
+    if (!notes || notes.length === 0) {
         list.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>No tienes notas guardadas.</p>";
         return;
     }
 
     notes.forEach(n => {
         const div = document.createElement('div');
-        div.className = "note-item";
+        div.className = "note-item"; // Usamos la misma clase visual que favoritos
         div.innerHTML = `
             <div class="fav-item-header">
-                <span class="note-ref">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
-                <button class="btn-delete-fav" onclick="event.stopPropagation(); window.deleteNoteBtn(${n.id})">✕</button>
+                <span class="note-item-ref" style="font-weight:800;">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
             </div>
-            <div class="note-content">${n.content}</div>
+            <p style="margin-top:10px; white-space: pre-wrap; color: var(--text-main);">${n.content}</p>
+            
+            <div class="item-footer-actions" style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                <button class="btn-small-action" onclick="event.stopPropagation(); window.goToPassage('${n.book_name}', ${n.chapter}, '${n.verse_number}')">📖 IR</button>
+                <button class="btn-small-action" onclick="event.stopPropagation(); window.editNote(${n.id}, '${n.book_name} ${n.chapter}:${n.verse_number}', \`${n.content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">✏️ EDITAR</button>
+                <button class="btn-small-action delete" onclick="event.stopPropagation(); window.deleteNoteBtn(${n.id})">🗑️ ELIMINAR</button>
+            </div>
         `;
-        div.onclick = () => {
-            currentBook = n.book_name;
-            currentChapter = n.chapter;
-            document.getElementById('notes-modal').classList.add('hidden');
-            const verseToScroll = n.verse_number.toString().split('-')[0];
-            loadContent(verseToScroll);
-        };
         list.appendChild(div);
     });
 }

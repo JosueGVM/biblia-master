@@ -151,8 +151,17 @@ function deleteNote(id) {
     });
 }
 
+function updateNote(id, content) {
+    return new Promise((resolve, reject) => {
+        const sql = `UPDATE notes SET content = ?, timestamp = CURRENT_TIMESTAMP WHERE id = ?`;
+        db.run(sql, [content, id], (err) => {
+            if (err) reject(err); else resolve(true);
+        });
+    });
+}
+
 module.exports = { 
     saveHighlight, getHighlights,
     saveFavorite, getFavorites, removeFavorite, isFavorite,
-    saveNote, getNotes, deleteNote
+    saveNote, getNotes, deleteNote, updateNote
 };
