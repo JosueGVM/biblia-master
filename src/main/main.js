@@ -23,11 +23,15 @@ function createWindow() {
 // HANDLES DE BIBLIA
 ipcMain.handle('get-chapter', async (e, d) => await dbManager.getChapter(d.version, d.book, d.chapter));
 ipcMain.handle('get-versions', async () => await dbManager.getVersions());
+
+// HANDLES DE BÚSQUEDA
 ipcMain.handle('search', async (e, d) => await dbManager.searchWords(d.version, d.keyword));
+ipcMain.handle('search-all', async (e, d) => await dbManager.searchWordsAllVersions(d.keyword));
 
 // HANDLES DE USUARIO (Highlights)
 ipcMain.handle('save-highlight', async (e, d) => await userManager.saveHighlight(d));
 ipcMain.handle('get-highlights', async (e, d) => await userManager.getHighlights(d.book, d.chapter));
+ipcMain.handle('get-all-highlights', async () => await userManager.getAllHighlights());
 
 // HANDLES DE USUARIO (FAVORITOS)
 ipcMain.handle('save-favorite', async (e, d) => await userManager.saveFavorite(d));

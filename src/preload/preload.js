@@ -3,10 +3,13 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
     getChapter: (data) => ipcRenderer.invoke('get-chapter', data),
     getVersions: () => ipcRenderer.invoke('get-versions'),
+        // Funciones de usuario - Búsqueda
     search: (data) => ipcRenderer.invoke('search', data),
+    searchAll: (d) => ipcRenderer.invoke('search-all', d),
         // Funciones de usuario - Highlights
     saveHighlight: (data) => ipcRenderer.invoke('save-highlight', data),
     getHighlights: (data) => ipcRenderer.invoke('get-highlights', data),
+    getAllHighlights: () => ipcRenderer.invoke('get-all-highlights'),
         // Funciones de usuario - Favoritos
     saveFavorite: (data) => ipcRenderer.invoke('save-favorite', data),
     getFavorites: () => ipcRenderer.invoke('get-favorites'),

@@ -70,8 +70,17 @@ function getHighlights(book, chapter) {
     });
 }
 
-// ✨ NUEVAS FUNCIONES DE FAVORITOS
+function getAllHighlights() {
+    return new Promise((resolve, reject) => {
+        db.all(
+            `SELECT * FROM highlights ORDER BY book_name, chapter, verse_number`,
+            [],
+            (err, rows) => { if (err) reject(err); else resolve(rows || []); }
+        );
+    });
+}
 
+// ✨ NUEVAS FUNCIONES DE FAVORITOS
 function saveFavorite(data) {
     return new Promise((resolve, reject) => {
         db.run(
@@ -165,7 +174,7 @@ function updateNote(id, content) {
 }
 
 module.exports = { 
-    saveHighlight, getHighlights,
+    saveHighlight, getHighlights, getAllHighlights,
     saveFavorite, getFavorites, removeFavorite, isFavorite,
     saveNote, getNotes, deleteNote, updateNote
 };

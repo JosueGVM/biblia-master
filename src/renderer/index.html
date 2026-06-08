@@ -17,11 +17,15 @@
 
         <main id="main-reader">
             <header id="reader-header">
-                <div id="group-indicator">| SECCIÓN |</div>
+                
                 <div id="header-nav-row">
-                    <button id="prev-chapter" class="nav-arrow-btn">❮</button>
-                                        
-                    <div id="header-main-controls">
+                    <button id="prev-chapter" class="nav-arrow-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    
+                    <div class="header-side-controls" id="header-left-controls">
                         <!-- BOTÓN DEL BUSCADOR -->
                         <button id="btn-open-search" class="minimal-icon-btn" title="Buscar">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,6 +39,13 @@
                                 <polygon points="12 2 15 10 23 10 17 15 19 23 12 18 5 23 7 15 1 10 9 10"></polygon>
                             </svg>
                         </button>
+                        <!-- BOTÓN DE HIGHLIGHTS -->
+                        <button id="btn-open-highlights" class="minimal-icon-btn" title="Mis Highlights">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                        </button>
                         <!-- BOTÓN DE NOTAS -->
                         <button id="btn-open-notes" class="minimal-icon-btn" title="Notas">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -42,11 +53,20 @@
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
                         </button>
+                    </div>
+                    
+                    <div id="header-main-controls">
                         <!-- TÍTULO INTERACTIVO -->
                         <div id="title-interactive">
-                            <span id="book-name-btn" class="clickable-title">Libro</span>
-                            <span id="chapter-num-btn" class="clickable-title">1</span>
+                            <div id="group-indicator">| SECCIÓN |</div>
+                            <div style="display:flex;">
+                                <span id="book-name-btn" class="clickable-title">Libro</span>
+                                <span id="chapter-num-btn" class="clickable-title">1</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="header-side-controls" id="header-right-controls">
                         <!-- BOTÓN DE CONFIGURACIÓN -->
                         <button id="settings-btn" class="minimal-icon-btn" title="Configuración">                            
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -56,7 +76,11 @@
                         </button>
                     </div>
 
-                    <button id="next-chapter" class="nav-arrow-btn">❯</button>
+                    <button id="next-chapter" class="nav-arrow-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
 
             </header>
@@ -72,6 +96,15 @@
             <div id="search-card">
                 <div id="search-header-box">
                     <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
+                    <button id="search-mode-toggle" class="search-mode-btn" title="Buscar en todas las versiones">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Activas</span>
+                    </button>
                     <button id="btn-close-search" class="close-x">✕</button>
                 </div>
                 <div id="search-status-bar">
@@ -117,6 +150,23 @@
                     <button id="btn-close-favorites" class="close-x">✕</button>
                 </div>
                 <div id="favorites-list"></div>
+            </div>
+        </div>
+        <!-- ✨ MODAL DE HIGHLIGHTS -->
+        <div id="highlights-modal" class="modal-overlay hidden">
+            <div id="highlights-card">
+                <div id="highlights-header-box">
+                    <h2>🖍️ Mis Highlights</h2>
+                    <button id="btn-close-highlights" class="close-x">✕</button>
+                </div>
+                <div id="highlights-filter-bar">
+                    <div class="hl-filter-dot all active" data-color="all" title="Todos"></div>
+                    <div class="hl-filter-dot" style="background:#fcf6bd" data-color="#fcf6bd" title="Amarillo"></div>
+                    <div class="hl-filter-dot" style="background:#d0f4de" data-color="#d0f4de" title="Verde"></div>
+                    <div class="hl-filter-dot" style="background:#ffadad" data-color="#ffadad" title="Rojo"></div>
+                    <div class="hl-filter-dot" style="background:#a0c4ff" data-color="#a0c4ff" title="Azul"></div>
+                </div>
+                <div id="highlights-list"></div>
             </div>
         </div>
         <!-- ✨ MODAL DE NOTAS -->

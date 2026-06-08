@@ -52,4 +52,25 @@ function searchWords(version, keyword) {
     });
 }
 
-module.exports = { getChapter, getVersions, searchWords };
+function searchWordsAllVersions(keyword) {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT * FROM bible_verses 
+                     WHERE (text LIKE ? OR text LIKE ? OR text LIKE ? OR text LIKE ?)
+                     ORDER BY version, book_name, chapter, verse_number
+                     LIMIT 1000`;
+        
+        const params = [
+            `${keyword} %`,
+            `% ${keyword}`,
+            `% ${keyword} %`,
+            keyword
+        ];
+
+        db.all(sql, params, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+}
+
+module.exports = { getChapter, getVersions, searchWords, searchWordsAllVersions };

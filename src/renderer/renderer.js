@@ -96,7 +96,7 @@ function renderColumn(index, version, verses, highlights) {
 
     const header = document.createElement('div');
     header.classList.add('column-header');
-    
+
     const select = document.createElement('select');
     select.classList.add('version-select');
     allAvailableVersions.forEach(v => {
@@ -107,17 +107,21 @@ function renderColumn(index, version, verses, highlights) {
     });
     select.addEventListener('change', (e) => { activeVersions[index] = e.target.value; loadContent(); });
     
-    const removeBtn = document.createElement('button');  // ✅ Button en lugar de span
+    const removeBtn = document.createElement('button');
     removeBtn.classList.add('remove-col');
     removeBtn.innerHTML = '✕';
-    removeBtn.title = 'Eliminar columna';  // ✅ Tooltip al pasar mouse
+    removeBtn.title = 'Eliminar columna';
     removeBtn.onclick = () => { if (activeVersions.length > 1) { activeVersions.splice(index, 1); loadContent(); }};
 
     const wrap = document.createElement('div');
-    wrap.style.display="flex"; wrap.style.alignItems="center"; wrap.style.gap="10px";
-    wrap.appendChild(select); wrap.appendChild(removeBtn);
-    header.appendChild(wrap);
-    
+    wrap.classList.add('column-header-full'); // ← ahora sí existe wrap
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "10px";
+    wrap.appendChild(select);
+    wrap.appendChild(removeBtn);
+    header.appendChild(wrap); // ← solo una vez
+
     const body = document.createElement('div');
     verses.forEach(v => {
         const vDiv = document.createElement('div');
@@ -134,7 +138,9 @@ function renderColumn(index, version, verses, highlights) {
         vDiv.onclick = () => toggleVerseSelection(vDiv, version, v.verse_number, v.text);
         body.appendChild(vDiv);
     });
-    col.appendChild(header); col.appendChild(body);
+
+    col.appendChild(header);
+    col.appendChild(body);
     columnsContainer.appendChild(col);
 }
 
@@ -266,8 +272,18 @@ function setupStaticEventListeners() {
         }
     };
 
-    document.getElementById('add-version-left').onclick = () => { activeVersions.unshift(allAvailableVersions[0]); loadContent(); };
-    document.getElementById('add-version-right').onclick = () => { activeVersions.push(allAvailableVersions[0]); loadContent(); };
+    function getNextAvailableVersion() {
+    return allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
+}
+
+document.getElementById('add-version-left').onclick = () => { 
+    activeVersions.unshift(getNextAvailableVersion()); 
+    loadContent(); 
+};
+document.getElementById('add-version-right').onclick = () => { 
+    activeVersions.push(getNextAvailableVersion()); 
+    loadContent(); 
+};
 
     document.getElementById('btn-open-search').onclick = () => { document.getElementById('search-modal').classList.remove('hidden'); document.getElementById('search-input').focus(); };
     document.getElementById('btn-close-search').onclick = () => document.getElementById('search-modal').classList.add('hidden');
@@ -386,25 +402,91 @@ function setupStaticEventListeners() {
     });
 
     // Buscador
-    const searchInput = document.getElementById('search-input');
-    searchInput.onkeyup = async (e) => {
-        if (e.key === "Enter") {
-            const query = e.target.value.trim();
-            if (query.length < 2) return;
-            const results = await window.api.search({ version: activeVersions[0], keyword: query });
-            const list = document.getElementById('results-list');
-            list.innerHTML = "";
-            document.getElementById('search-title-display').innerText = `"${query}"`;
-            document.getElementById('results-count').innerText = `${results.length} resultados`;
-            results.forEach(res => {
+    // Estado del modo de búsqueda
+let searchAllVersions = false;
+
+document.getElementById('search-mode-toggle').onclick = () => {
+    searchAllVersions = !searchAllVersions;
+    const btn = document.getElementById('search-mode-toggle');
+    btn.classList.toggle('active', searchAllVersions);
+    btn.querySelector('span').innerText = searchAllVersions ? 'Todas' : 'Activas';
+};
+
+const searchInput = document.getElementById('search-input');
+searchInput.onkeyup = async (e) => {
+    if (e.key !== "Enter") return;
+    const query = e.target.value.trim();
+    if (query.length < 2) return;
+
+    const list = document.getElementById('results-list');
+    list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Buscando...</p>";
+    document.getElementById('search-title-display').innerText = `"${query}"`;
+
+    if (searchAllVersions) {
+        // Modo: todas las versiones
+        const results = await window.api.searchAll({ keyword: query });
+        document.getElementById('results-count').innerText = `${results.length} resultados`;
+        list.innerHTML = "";
+
+        // Agrupar por versión
+        const grouped = {};
+        results.forEach(r => {
+            if (!grouped[r.version]) grouped[r.version] = [];
+            grouped[r.version].push(r);
+        });
+
+        Object.keys(grouped).forEach(version => {
+            // Encabezado de versión
+            const vHeader = document.createElement('div');
+            vHeader.style.cssText = `
+                padding: 8px 0; margin: 15px 0 8px 0;
+                font-size: 0.7rem; font-weight: 800; letter-spacing: 2px;
+                color: var(--accent); text-transform: uppercase;
+                border-bottom: 1px solid var(--border);
+            `;
+            vHeader.innerText = `${version} — ${grouped[version].length} resultados`;
+            list.appendChild(vHeader);
+
+            grouped[version].forEach(res => {
                 const div = document.createElement('div');
                 div.classList.add('search-item');
-                div.innerHTML = `<span class="search-item-ref" style="font-weight:800;">${res.book_name} ${res.chapter}:${res.verse_number}</span><p>${res.text}</p>`;
-                div.onclick = () => { currentBook = res.book_name; currentChapter = res.chapter; document.getElementById('search-modal').classList.add('hidden'); loadContent(); };
+                div.innerHTML = `
+                    <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
+                    <p>${res.text}</p>
+                `;
+                div.onclick = () => {
+                    if (!activeVersions.includes(version)) activeVersions.push(version);
+                    currentBook = res.book_name;
+                    currentChapter = res.chapter;
+                    document.getElementById('search-modal').classList.add('hidden');
+                    loadContent(res.verse_number);
+                };
                 list.appendChild(div);
             });
-        }
-    };
+        });
+
+    } else {
+        // Modo: versiones activas (comportamiento original)
+        const results = await window.api.search({ version: activeVersions[0], keyword: query });
+        document.getElementById('results-count').innerText = `${results.length} resultados`;
+        list.innerHTML = "";
+        results.forEach(res => {
+            const div = document.createElement('div');
+            div.classList.add('search-item');
+            div.innerHTML = `
+                <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
+                <p>${res.text}</p>
+            `;
+            div.onclick = () => {
+                currentBook = res.book_name;
+                currentChapter = res.chapter;
+                document.getElementById('search-modal').classList.add('hidden');
+                loadContent(res.verse_number);
+            };
+            list.appendChild(div);
+        });
+    }
+};
 
     // Marcatextos y Copiado
     document.querySelectorAll('.btn-color').forEach(btn => btn.onclick = () => applyHighlight(btn.dataset.color));
@@ -424,21 +506,46 @@ function setupStaticEventListeners() {
     document.getElementById('btn-cancel-note').onclick = () => document.getElementById('note-editor-modal').classList.add('hidden');
     document.getElementById('btn-save-note').onclick = saveCurrentNote;
 
+    // Filtro de highlights por color
+    document.querySelectorAll('.hl-filter-dot').forEach(dot => {
+        dot.onclick = async () => {
+            document.querySelectorAll('.hl-filter-dot').forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+            const color = dot.dataset.color;
+            const items = document.querySelectorAll('.highlight-item');
+            items.forEach(item => {
+                item.style.display = (color === 'all' || item.dataset.color === color) ? '' : 'none';
+            });
+        };
+    });
 }
 
 // --- FUNCIONES DE SOPORTE ---
-
 function setupScrollSync() {
     const columns = document.querySelectorAll('.version-column');
-    let isSyncing = false;
+    let syncSource = null; // ← qué columna inició el scroll
+
     columns.forEach(col => {
         col.onscroll = () => {
-            if (!isSyncing) {
-                isSyncing = true;
-                const percentage = col.scrollTop / (col.scrollHeight - col.clientHeight);
-                columns.forEach(otherCol => { if (otherCol !== col) otherCol.scrollTop = percentage * (otherCol.scrollHeight - otherCol.clientHeight); });
-                requestAnimationFrame(() => isSyncing = false);
-            }
+            // Compact header
+            columns.forEach(c => {
+                const header = c.querySelector('.column-header');
+                if (header) header.classList.toggle('compact', c.scrollTop > 30);
+            });
+
+            // Si hay una fuente activa y no soy yo, ignorar
+            if (syncSource && syncSource !== col) return;
+
+            syncSource = col;
+            const percentage = col.scrollTop / (col.scrollHeight - col.clientHeight);
+
+            columns.forEach(otherCol => {
+                if (otherCol === col) return;
+                otherCol.scrollTop = percentage * (otherCol.scrollHeight - otherCol.clientHeight);
+            });
+
+            clearTimeout(col._syncTimer);
+            col._syncTimer = setTimeout(() => { syncSource = null; }, 50);
         };
     });
 }
@@ -842,5 +949,72 @@ window.deleteNoteBtn = async (id) => {
         }
     }
 };
+
+// ============================================
+// ✨ FUNCIONES DE HIGHLIGHTS
+// ============================================
+
+document.getElementById('btn-open-highlights').onclick = async () => {
+    document.getElementById('highlights-modal').classList.remove('hidden');
+    await loadHighlights();
+};
+document.getElementById('btn-close-highlights').onclick = () => {
+    document.getElementById('highlights-modal').classList.add('hidden');
+};
+
+async function loadHighlights() {
+    try {
+        const highlights = await window.api.getAllHighlights();
+        const list = document.getElementById('highlights-list');
+        list.innerHTML = "";
+
+        if (!highlights || highlights.length === 0) {
+            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:40px;">🖍️ No tienes highlights aún</div>';
+            return;
+        }
+
+        highlights.forEach(h => {
+            const div = document.createElement('div');
+            div.classList.add('highlight-item');
+            div.style.borderLeft = `4px solid ${h.color}`;
+            div.dataset.color = h.color; // Para filtrado por color
+
+            div.innerHTML = `
+                <div class="highlight-color-dot" style="background:${h.color}"></div>
+                <div class="highlight-body">
+                    <span class="highlight-ref">${h.book_name} ${h.chapter}:${h.verse_number} · ${h.version}</span>
+                </div>
+                <div class="item-footer-actions">
+                    <button class="btn-small-action btn-hl-ir">📖 IR</button>
+                    <button class="btn-small-action btn-hl-del">🗑️ ELIMINAR</button>
+                </div>
+            `;
+
+            div.querySelector('.btn-hl-ir').onclick = async () => {
+                currentBook = h.book_name;
+                currentChapter = h.chapter;
+                await loadContent();
+                document.getElementById('highlights-modal').classList.add('hidden');
+                setTimeout(() => scrollToVerse(h.verse_number), 200);
+            };
+
+            div.querySelector('.btn-hl-del').onclick = async () => {
+                await window.api.saveHighlight({
+                    book: h.book_name, chapter: h.chapter,
+                    verse: h.verse_number, version: h.version,
+                    color: 'transparent'
+                });
+                await loadHighlights();
+                // Refrescar columnas si estamos en ese mismo capítulo
+                if (currentBook === h.book_name && currentChapter === h.chapter) loadContent();
+            };
+
+            list.appendChild(div);
+        });
+
+    } catch (err) {
+        console.error("Error al cargar highlights:", err);
+    }
+}
 
 window.addEventListener('DOMContentLoaded', init);
