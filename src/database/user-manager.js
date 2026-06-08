@@ -146,7 +146,11 @@ function getNotes() {
 function deleteNote(id) {
     return new Promise((resolve, reject) => {
         db.run(`DELETE FROM notes WHERE id = ?`, [id], (err) => {
-            if (err) reject(err); else resolve({ success: true });
+            if(err) {
+                reject(err);
+            } else {
+                resolve({ success: true });
+            }
         });
     });
 }

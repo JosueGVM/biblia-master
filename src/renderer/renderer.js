@@ -54,7 +54,7 @@ function showStartUpSelector() {
     });
 }
 
-async function loadContent() {
+async function loadContent(targetVerse = null) {
     columnsContainer.innerHTML = "";
     
     // Actualizar Header
@@ -79,6 +79,13 @@ async function loadContent() {
         // Llamada a Sidebars con la nueva lógica de vecinos
         updateSidebars(currentBook);
         setupScrollSync();
+
+        if (targetVerse) {
+            setTimeout(() => {
+                scrollToVerse(targetVerse);
+            }, 200);
+        }
+
     } catch (err) { console.error(err); }
 }
 
@@ -752,19 +759,6 @@ async function saveCurrentNote() {
     if (!document.getElementById('notes-modal').classList.contains('hidden')) loadNotes();
 }
 
-// --- AYUDANTES PARA LOS BOTONES (Globales) ---
-window.editNote = (id, ref, content) => {
-    document.getElementById('notes-modal').classList.add('hidden');
-    openNoteEditor({ id, ref, content });
-};
-
-window.deleteNoteBtn = async (id) => {
-    if (confirm("¿Eliminar esta nota?")) {
-        await window.api.deleteNote(id);
-        loadNotes();
-    }
-};
-
 async function loadNotes() {
     const notes = await window.api.getNotes();
     const list = document.getElementById('notes-list');
@@ -781,24 +775,71 @@ async function loadNotes() {
         div.className = "note-item"; // Usamos la misma clase visual que favoritos
         div.innerHTML = `
             <div class="fav-item-header">
-                <span class="note-item-ref" style="font-weight:800;">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
+                <span class="note-item-ref" style="font-weight:800; color: var(--accent);">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
             </div>
             <p style="margin-top:10px; white-space: pre-wrap; color: var(--text-main);">${n.content}</p>
             
             <div class="item-footer-actions" style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
-                <button class="btn-small-action" onclick="event.stopPropagation(); window.goToPassage('${n.book_name}', ${n.chapter}, '${n.verse_number}')">📖 IR</button>
-                <button class="btn-small-action" onclick="event.stopPropagation(); window.editNote(${n.id}, '${n.book_name} ${n.chapter}:${n.verse_number}', \`${n.content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">✏️ EDITAR</button>
-                <button class="btn-small-action delete" onclick="event.stopPropagation(); window.deleteNoteBtn(${n.id})">🗑️ ELIMINAR</button>
+                <button class="btn-small-action btn-ir">📖 IR</button>
+                <button class="btn-small-action btn-editar">✏️ EDITAR</button>
+                <button class="btn-small-action delete btn-eliminar">🗑️ ELIMINAR</button>
             </div>
         `;
+
+        const btnIr = div.querySelector('.btn-ir');
+        btnIr.addEventListener('click', async () => {
+            currentBook = n.book_name;
+            currentChapter = n.chapter;
+            await loadContent();
+            document.getElementById('notes-modal').classList.add('hidden');
+            setTimeout(() => {
+                scrollToVerse(n.verse_number);
+            }, 100);
+        });
+
+        const btnEliminar = div.querySelector('.btn-eliminar');
+        btnEliminar.addEventListener('click', () => {
+            window.deleteNoteBtn(n.id);
+        });
+
+        const btnEditar = div.querySelector('.btn-editar');
+        btnEditar.addEventListener('click', () => {
+            window.editNote(n.id, `${n.book_name} ${n.chapter}:${n.verse_number}`, n.content);
+        });
+
         list.appendChild(div);
     });
 }
 
+// --- AYUDANTES PARA LOS BOTONES (Globales) ---
+window.editNote = (id, ref, content) => {
+    document.getElementById('notes-modal').classList.add('hidden');
+    openNoteEditor({ id, ref, content });
+};
+
+window.goToPassage = async (book, chapter, verse) => {
+    currentBook = book;
+    currentChapter = parseInt(chapter);
+
+    document.getElementById('notes-modal').classList.add('hidden');
+    document.getElementById('favs-modal').classList.add('hidden');
+
+    const firstVerse = verse.toString().split('-')[0]; // En caso de rango, tomar el primer versículo
+    await loadContent(firstVerse);
+    setTimeout(() => {
+        scrollToVerse(parseInt(firstVerse));
+    }, 300);
+};
+
 window.deleteNoteBtn = async (id) => {
-    if(confirm("¿Eliminar esta nota?")) {
-        await window.api.deleteNote(id);
-        loadNotes();
+    const respuesta = confirm("¿Estás seguro de que quieres eliminar esta nota?");
+    if (respuesta) {
+        try {
+            await window.api.deleteNote(id);
+            loadNotes();
+        } catch (error) {
+            console.error("Error al eliminar nota:", error);
+        }
     }
 };
 
