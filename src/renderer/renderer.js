@@ -1,270 +1,95 @@
-let activeVersions = []; //Empezamos vacío, obliga a seleccionar una versión disponible para comenzar la lectura
-let allAvailableVersions = [];
-let currentBook = 'Génesis';
-let currentChapter = 1;
-let selectedVerses = [];
-let favoritesCache = []; // ✨ para cachear favoritos
-let editingNoteId = null; // ✨ para saber si estamos editando o creando una nota
-let searchAllVersions = false;
-let activeFilters = { testament: null, versions: new Set(), books: new Set() };
-let lastSearchResults = [];
+import { loadContent, scrollToVerse } from './modules/content.js';
+import { updateSidebars } from './modules/sidebar.js';
+import { toggleVerseSelection, updateActionToolbar, applyHighlight, copySelected, cancelSelection } from './modules/selection.js';
+import { addToFavorites, loadFavorites } from './modules/favorites.js';
+import { loadNotes, openNoteEditor, saveCurrentNote } from './modules/notes.js';
+import { loadHighlights } from './modules/highlights.js';
+import { buildFilters, renderFilteredResults } from './modules/search.js';
+import { loadAppSettings, setupTooltips } from './modules/settings.js';
+import { openOutlinesScreen } from './modules/outlines.js';
+import { openExegesisScreen } from './modules/exegesis.js';
 
-const columnsContainer = document.getElementById('text-columns-container');
-const leftSidebar = document.getElementById('prev-books');
-const rightSidebar = document.getElementById('next-books');
+// ============================================
+// ESTADO GLOBAL — exportado para módulos
+// ============================================
+export let activeVersions = [];
+export let allAvailableVersions = [];
+export let currentBook = 'Génesis';
+export let currentChapter = 1;
+export let selectedVerses = [];
+export let favoritesCache = [];
+export let editingNoteId = null;
+export let searchAllVersions = false;
+export let activeFilters = { testament: null, versions: new Set(), books: new Set() };
+export let lastSearchResults = [];
 
-// Mapeo de capítulos máximos para los dropdowns
-const chapterCounts = { "Génesis": 50, "Éxodo": 40, "Levítico": 27, "Números": 36, "Deuteronomio": 34, "Josué": 24, "Jueces": 21, "Rut": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Reyes": 22, "2 Reyes": 25, "1 Crónicas": 29, "2 Crónicas": 36, "Esdras": 10, "Nehemías": 13, "Ester": 10, "Job": 42, "Salmos": 150, "Proverbios": 31, "Eclesiastés": 12, "Cantares": 8, "Isaías": 66, "Jeremías": 52, "Lamentaciones": 5, "Ezequiel": 48, "Daniel": 12, "Oseas": 14, "Joel": 3, "Amós": 9, "Abdías": 1, "Jonás": 4, "Miqueas": 7, "Nahúm": 3, "Habacuc": 3, "Sofonías": 3, "Hageo": 2, "Zacarías": 14, "Malaquías": 4, "Mateo": 28, "Marcos": 16, "Lucas": 24, "Juan": 21, "Hechos": 28, "Romanos": 16, "1 Corintios": 16, "2 Corintios": 13, "Gálatas": 6, "Efesios": 6, "Filipenses": 4, "Colosenses": 4, "1 Tesalonicenses": 5, "2 Tesalonicenses": 3, "1 Timoteo": 6, "2 Timoteo": 4, "Tito": 3, "Filemón": 1, "Hebreos": 13, "Santiago": 5, "1 Pedro": 5, "2 Pedro": 3, "1 Juan": 5, "2 Juan": 1, "3 Juan": 1, "Judas": 1, "Apocalipsis": 22 };
+// Setters
+export const setCurrentBook = (v) => { currentBook = v; };
+export const setCurrentChapter = (v) => { currentChapter = v; };
+export const setSelectedVerses = (v) => { selectedVerses = v; };
+export const setFavoritesCache = (v) => { favoritesCache = v; };
+export const setEditingNoteId = (v) => { editingNoteId = v; };
+export const setSearchAllVersions = (v) => { searchAllVersions = v; };
+export const setActiveFilters = (v) => { activeFilters = v; };
+export const setLastSearchResults = (v) => { lastSearchResults = v; };
 
+export const chapterCounts = { "Génesis": 50, "Éxodo": 40, "Levítico": 27, "Números": 36, "Deuteronomio": 34, "Josué": 24, "Jueces": 21, "Rut": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Reyes": 22, "2 Reyes": 25, "1 Crónicas": 29, "2 Crónicas": 36, "Esdras": 10, "Nehemías": 13, "Ester": 10, "Job": 42, "Salmos": 150, "Proverbios": 31, "Eclesiastés": 12, "Cantares": 8, "Isaías": 66, "Jeremías": 52, "Lamentaciones": 5, "Ezequiel": 48, "Daniel": 12, "Oseas": 14, "Joel": 3, "Amós": 9, "Abdías": 1, "Jonás": 4, "Miqueas": 7, "Nahúm": 3, "Habacuc": 3, "Sofonías": 3, "Hageo": 2, "Zacarías": 14, "Malaquías": 4, "Mateo": 28, "Marcos": 16, "Lucas": 24, "Juan": 21, "Hechos": 28, "Romanos": 16, "1 Corintios": 16, "2 Corintios": 13, "Gálatas": 6, "Efesios": 6, "Filipenses": 4, "Colosenses": 4, "1 Tesalonicenses": 5, "2 Tesalonicenses": 3, "1 Timoteo": 6, "2 Timoteo": 4, "Tito": 3, "Filemón": 1, "Hebreos": 13, "Santiago": 5, "1 Pedro": 5, "2 Pedro": 3, "1 Juan": 5, "2 Juan": 1, "3 Juan": 1, "Judas": 1, "Apocalipsis": 22 };
+
+// ============================================
+// INIT
+// ============================================
 async function init() {
-    console.log("Iniciando aplicación...");
-    //1. Cargamos las versiones de bibles.db
     allAvailableVersions = await window.api.getVersions();
-
     loadAppSettings();
     setupStaticEventListeners();
-
-    //2. Verificamos si hay versiones encontradas
-    if (activeVersions.length === 0) {
-        showStartUpSelector();
-    } else {
-        console.error("No hay versiones activas disponibles.");
-        // Fallback: si no hay nada, al menos intenta cargar Génesis con algo
-        loadContent();
-    }
+    if (activeVersions.length === 0) showStartUpSelector();
+    else loadContent();
     setupTooltips();
 }
 
 function showStartUpSelector() {
     const modal = document.getElementById('startup-modal');
     const list = document.getElementById('startup-version-list');
-
     if (!modal || !list) return;
-
-    list.innerHTML = ""; //Limpiamos
-    modal.classList.remove('hidden'); //Aseguramos que se vea
-
+    list.innerHTML = "";
+    modal.classList.remove('hidden');
     allAvailableVersions.forEach(v => {
         const btn = document.createElement('button');
         btn.className = "startup-card-btn";
-        btn.innerText = v; // Siglas de la versión
-
-        btn.onclick = () => {
-            activeVersions = [v]; // Establecemos la versión elegida
-            modal.classList.add('hidden'); // Ocultamos el modal
-            loadContent(); // Cargamos Génesis 1 de esa versión
-        };
+        btn.innerText = v;
+        btn.onclick = () => { activeVersions = [v]; modal.classList.add('hidden'); loadContent(); };
         list.appendChild(btn);
     });
 }
 
-async function loadContent(targetVerse = null) {
-    columnsContainer.innerHTML = "";
-    
-    // Actualizar Header
-    document.getElementById('book-name-btn').innerText = currentBook;
-    document.getElementById('chapter-num-btn').innerText = currentChapter;
-    
-    const bookData = bibleStructure.find(b => b.name === currentBook);
-    document.getElementById('group-indicator').innerText = bookData ? `| ${bookData.group.toUpperCase()} |` : "";
-
-    selectedVerses = [];
-    updateActionToolbar();
-
-    const biblePromise = Promise.all(activeVersions.map(v => 
-        window.api.getChapter({ version: v, book: currentBook, chapter: currentChapter })
-    ));
-    const highlightsPromise = window.api.getHighlights({ book: currentBook, chapter: currentChapter });
-
-    try {
-        const [results, highlights] = await Promise.all([biblePromise, highlightsPromise]);
-        results.forEach((verses, index) => renderColumn(index, activeVersions[index], verses, highlights));
-        
-        // Llamada a Sidebars con la nueva lógica de vecinos
-        updateSidebars(currentBook);
-        setupScrollSync();
-
-        if (targetVerse) {
-            setTimeout(() => {
-                scrollToVerse(targetVerse);
-            }, 200);
-        }
-
-    } catch (err) { console.error(err); }
+function getNextAvailableVersion() {
+    return allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
 }
 
-function renderColumn(index, version, verses, highlights) {
-    const col = document.createElement('div');
-    col.classList.add('version-column');
-    col.dataset.version = version;
-
-    const header = document.createElement('div');
-    header.classList.add('column-header');
-
-    const select = document.createElement('select');
-    select.classList.add('version-select');
-    allAvailableVersions.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v; opt.innerText = v;
-        if (v === version) opt.selected = true;
-        select.appendChild(opt);
-    });
-    select.addEventListener('change', (e) => { activeVersions[index] = e.target.value; loadContent(); });
-    
-    const removeBtn = document.createElement('button');
-    removeBtn.classList.add('remove-col');
-    removeBtn.innerHTML = '✕';
-    removeBtn.title = 'Eliminar columna';
-    removeBtn.onclick = () => { if (activeVersions.length > 1) { activeVersions.splice(index, 1); loadContent(); }};
-
-    const wrap = document.createElement('div');
-    wrap.classList.add('column-header-full'); // ← ahora sí existe wrap
-    wrap.style.display = "flex";
-    wrap.style.alignItems = "center";
-    wrap.style.gap = "10px";
-    wrap.appendChild(select);
-    wrap.appendChild(removeBtn);
-    header.appendChild(wrap); // ← solo una vez
-
-    const body = document.createElement('div');
-    verses.forEach(v => {
-        const vDiv = document.createElement('div');
-        vDiv.classList.add('verse');
-        vDiv.dataset.verse = v.verse_number;
-        vDiv.innerHTML = `<span class="verse-number">${v.verse_number}</span>${v.text}`;
-
-        const mark = highlights.find(h => h.verse_number === v.verse_number && h.version === version);
-        if (mark) {
-            vDiv.style.backgroundColor = mark.color;
-            if (mark.color !== 'transparent') vDiv.classList.add('highlighted');
-        }
-
-        vDiv.onclick = () => toggleVerseSelection(vDiv, version, v.verse_number, v.text);
-        body.appendChild(vDiv);
-    });
-
-    col.appendChild(header);
-    col.appendChild(body);
-    columnsContainer.appendChild(col);
-}
-
-// --- LÓGICA DE SIDEBAR INTELIGENTE MEJORADA ---
-
-function updateSidebars(bookName) {
-    leftSidebar.innerHTML = ""; 
-    rightSidebar.innerHTML = "";
-
-    const currentIndex = bibleStructure.findIndex(b => b.name === bookName);
-    if (currentIndex === -1) return;
-
-    const currentGroup = bibleStructure[currentIndex].group;
-
-    // 1. Identificar el orden real de todas las secciones
-    const allGroupsOrdered = [];
-    bibleStructure.forEach(b => {
-        if (!allGroupsOrdered.includes(b.group)) {
-            allGroupsOrdered.push(b.group);
-        }
-    });
-
-    // 2. Encontrar quiénes son los vecinos de la sección actual en la Biblia completa
-    const currentGroupIdx = allGroupsOrdered.indexOf(currentGroup);
-    const globalPrevGroupName = allGroupsOrdered[currentGroupIdx - 1] || null;
-    const globalNextGroupName = allGroupsOrdered[currentGroupIdx + 1] || null;
-
-    const prevBooks = bibleStructure.slice(0, currentIndex);
-    const nextBooks = bibleStructure.slice(currentIndex + 1);
-
-    renderSidebarGroups(prevBooks, leftSidebar, "prev", currentGroup, globalPrevGroupName, globalNextGroupName);
-    renderSidebarGroups(nextBooks, rightSidebar, "next", currentGroup, globalPrevGroupName, globalNextGroupName);
-}
-
-function renderSidebarGroups(books, container, side, currentGroup, globalPrevGroupName, globalNextGroupName) {
-    if (books.length === 0) return;
-
-    const groups = {};
-    books.forEach(b => {
-        if (!groups[b.group]) groups[b.group] = [];
-        groups[b.group].push(b);
-    });
-
-    const groupNames = Object.keys(groups);
-
-    groupNames.forEach((gName) => {
-        // Apertura inteligente:
-        // - El grupo actual siempre abierto.
-        // - El grupo anterior global abierto en el sidebar izquierdo.
-        // - El grupo posterior global abierto en el sidebar derecho.
-        const isOpen = (gName === currentGroup) || 
-                       (side === "prev" && gName === globalPrevGroupName) || 
-                       (side === "next" && gName === globalNextGroupName);
-
-        const gDiv = document.createElement('div');
-        gDiv.className = `group-container ${isOpen ? 'active' : ''}`;
-
-        const header = document.createElement('div');
-        header.className = 'group-header';
-        header.innerHTML = `<span>${gName}</span><small>${isOpen ? '▲' : '▼'}</small>`;
-        
-        header.onclick = () => {
-            const nowActive = gDiv.classList.toggle('active');
-            header.querySelector('small').innerText = nowActive ? '▲' : '▼';
-        };
-
-        const list = document.createElement('div');
-        list.classList.add('book-list');
-
-        groups[gName].forEach(b => {
-            const item = document.createElement('div');
-            item.classList.add('book-item');
-            item.innerText = b.name;
-            item.onclick = (e) => {
-                e.stopPropagation();
-                currentBook = b.name;
-                currentChapter = 1;
-                loadContent();
-            };
-            list.appendChild(item);
-        });
-
-        gDiv.appendChild(header);
-        gDiv.appendChild(list);
-        container.appendChild(gDiv);
-    });
-}
-
-// --- EVENTOS ESTÁTICOS ---
-
+// ============================================
+// EVENTOS ESTÁTICOS
+// ============================================
 function setupStaticEventListeners() {
     window.addEventListener('keydown', (e) => {
-    // 1. Manejo de la tecla Escape (Cerrar todo)
-    if (e.key === 'Escape') {
-        // Añadimos el nuevo modal del editor de notas a la lista de lo que se cierra con ESC
-        document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
-        cancelSelection();
-    }
-
-    // 2. Manejo de la tecla Espacio (Buscador)
-    // CORRECCIÓN: Ahora también comprobamos que NO estemos en un TEXTAREA
-    if (e.code === 'Space') {
-        const activeTag = document.activeElement.tagName;
-        
-        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
-            e.preventDefault(); // Evita que la página salte hacia abajo
-            const modal = document.getElementById('search-modal');
-            if(modal) { 
-                modal.classList.remove('hidden'); 
-                document.getElementById('search-input').focus(); 
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay, .dropdown-overlay').forEach(m => m.classList.add('hidden'));
+            cancelSelection();
+        }
+        if (e.code === 'Space') {
+            const activeTag = document.activeElement.tagName;
+            if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+                e.preventDefault();
+                const modal = document.getElementById('search-modal');
+                if (modal) { modal.classList.remove('hidden'); document.getElementById('search-input').focus(); }
             }
         }
-    }
     });
 
     document.getElementById('prev-chapter').onclick = () => {
         if (currentChapter > 1) { currentChapter--; loadContent(); }
         else {
             const idx = bibleStructure.findIndex(b => b.name === currentBook);
-            if (idx > 0) { currentBook = bibleStructure[idx-1].name; currentChapter = chapterCounts[currentBook] || 1; loadContent(); }
+            if (idx > 0) { currentBook = bibleStructure[idx - 1].name; currentChapter = chapterCounts[currentBook] || 1; loadContent(); }
         }
     };
     document.getElementById('next-chapter').onclick = () => {
@@ -272,41 +97,35 @@ function setupStaticEventListeners() {
         if (currentChapter < max) { currentChapter++; loadContent(); }
         else {
             const idx = bibleStructure.findIndex(b => b.name === currentBook);
-            if (idx < bibleStructure.length - 1) { currentBook = bibleStructure[idx+1].name; currentChapter = 1; loadContent(); }
+            if (idx < bibleStructure.length - 1) { currentBook = bibleStructure[idx + 1].name; currentChapter = 1; loadContent(); }
         }
     };
 
-    function getNextAvailableVersion() {
-    return allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
-    }
-
-    document.getElementById('add-version-left').onclick = () => { 
-        activeVersions.unshift(getNextAvailableVersion()); 
-        loadContent(); 
-    };
-    document.getElementById('add-version-right').onclick = () => { 
-        activeVersions.push(getNextAvailableVersion()); 
-        loadContent(); 
-    };
+    document.getElementById('add-version-left').onclick = () => { activeVersions.unshift(getNextAvailableVersion()); loadContent(); };
+    document.getElementById('add-version-right').onclick = () => { activeVersions.push(getNextAvailableVersion()); loadContent(); };
 
     document.getElementById('btn-open-search').onclick = () => { document.getElementById('search-modal').classList.remove('hidden'); document.getElementById('search-input').focus(); };
     document.getElementById('btn-close-search').onclick = () => document.getElementById('search-modal').classList.add('hidden');
-    
-        // ✨ EVENTOS DE FAVORITOS
-    document.getElementById('btn-open-favorites').onclick = async () => { 
-        document.getElementById('favorites-modal').classList.remove('hidden'); 
-        await loadFavorites(); 
-    };
+
+    document.getElementById('btn-open-favorites').onclick = async () => { document.getElementById('favorites-modal').classList.remove('hidden'); await loadFavorites(); };
     document.getElementById('btn-close-favorites').onclick = () => document.getElementById('favorites-modal').classList.add('hidden');
+
+    document.getElementById('btn-open-highlights').onclick = async () => { document.getElementById('highlights-modal').classList.remove('hidden'); await loadHighlights(); };
+    document.getElementById('btn-close-highlights').onclick = () => document.getElementById('highlights-modal').classList.add('hidden');
+
+    document.getElementById('btn-open-notes').onclick = loadNotes;
+    document.getElementById('btn-close-notes').onclick = () => document.getElementById('notes-modal').classList.add('hidden');
+    document.getElementById('action-note').onclick = () => openNoteEditor();
+    document.getElementById('btn-cancel-note').onclick = () => document.getElementById('note-editor-modal').classList.add('hidden');
+    document.getElementById('btn-save-note').onclick = saveCurrentNote;
 
     document.getElementById('settings-btn').onclick = () => document.getElementById('settings-modal').classList.remove('hidden');
     document.getElementById('close-settings').onclick = () => document.getElementById('settings-modal').classList.add('hidden');
 
     document.querySelectorAll('.theme-dot').forEach(dot => {
         dot.onclick = () => {
-            const theme = dot.dataset.theme;
-            document.body.className = theme;
-            localStorage.setItem('theme', theme);
+            document.body.className = dot.dataset.theme;
+            localStorage.setItem('theme', dot.dataset.theme);
             document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
             dot.classList.add('active');
         };
@@ -318,94 +137,55 @@ function setupStaticEventListeners() {
         document.documentElement.style.setProperty('--font-size', size + 'px');
         localStorage.setItem('fontSize', size);
     };
-    
+
     document.getElementById('font-family-select').onchange = (e) => {
         document.documentElement.style.setProperty('--font-family', e.target.value);
         localStorage.setItem('fontFamily', e.target.value);
     };
 
-    // Dropdowns Título con centrado dinámico
-    document.getElementById('book-name-btn').onclick = function(e) {
+    document.getElementById('book-name-btn').onclick = function (e) {
         e.stopPropagation();
-
-        // Obtener o crear el dropdown si no existe
         let drop = document.getElementById('books-dropdown');
-        if (!drop) {
-            drop = document.createElement('div');
-            drop.id = 'books-dropdown';
-            drop.className = 'dropdown-overlay';
-            document.body.appendChild(drop);
-        }
-
+        if (!drop) { drop = document.createElement('div'); drop.id = 'books-dropdown'; drop.className = 'dropdown-overlay'; document.body.appendChild(drop); }
         const rect = this.getBoundingClientRect();
-
         drop.innerHTML = "";
         bibleStructure.forEach(b => {
-            const item = document.createElement('div'); 
-            item.className = "dropdown-item"; 
+            const item = document.createElement('div');
+            item.className = "dropdown-item";
             item.innerText = b.name;
-            item.onclick = () => { 
-                currentBook = b.name; 
-                currentChapter = 1; 
-                drop.remove();
-                loadContent(); 
-            };
+            item.onclick = () => { currentBook = b.name; currentChapter = 1; drop.remove(); loadContent(); };
             drop.appendChild(item);
         });
-
-        // Mostrar y posicionar
         drop.style.display = 'flex';
-        drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
+        drop.style.left = `${rect.left + (rect.width / 2) - (drop.offsetWidth / 2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
 
-    document.getElementById('chapter-num-btn').onclick = function(e) {
+    document.getElementById('chapter-num-btn').onclick = function (e) {
         e.stopPropagation();
-
-        // Obtener o crear el dropdown si no existe
         let drop = document.getElementById('chapters-dropdown');
-        if (!drop) {
-            drop = document.createElement('div');
-            drop.id = 'chapters-dropdown';
-            drop.className = 'dropdown-overlay';
-            document.body.appendChild(drop);
-        }
-
+        if (!drop) { drop = document.createElement('div'); drop.id = 'chapters-dropdown'; drop.className = 'dropdown-overlay'; document.body.appendChild(drop); }
         const rect = this.getBoundingClientRect();
         drop.innerHTML = "";
         const max = chapterCounts[currentBook] || 50;
         for (let i = 1; i <= max; i++) {
-            const item = document.createElement('div'); 
-            item.className = "dropdown-item"; 
+            const item = document.createElement('div');
+            item.className = "dropdown-item";
             item.innerText = i;
-            item.onclick = () => { 
-                currentChapter = i; 
-                drop.remove();
-                loadContent(); 
-            };
+            item.onclick = () => { currentChapter = i; drop.remove(); loadContent(); };
             drop.appendChild(item);
         }
-
-        // Mostrar y posicionar
         drop.style.display = 'flex';
         drop.style.width = "100px";
-        drop.style.left = `${rect.left + (rect.width/2) - (drop.offsetWidth/2)}px`;
+        drop.style.left = `${rect.left + (rect.width / 2) - (drop.offsetWidth / 2)}px`;
         drop.style.top = `${rect.bottom + 10}px`;
     };
 
-    // Cerrar dropdowns al hacer clic fuera
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('#book-name-btn') && !e.target.closest('.dropdown-overlay')) {
-            const drop = document.getElementById('books-dropdown');
-            if (drop) drop.remove();
-        }
-        if (!e.target.closest('#chapter-num-btn') && !e.target.closest('.dropdown-overlay')) {
-            const drop = document.getElementById('chapters-dropdown');
-            if (drop) drop.remove();
-        }
+        if (!e.target.closest('#book-name-btn') && !e.target.closest('.dropdown-overlay')) { const drop = document.getElementById('books-dropdown'); if (drop) drop.remove(); }
+        if (!e.target.closest('#chapter-num-btn') && !e.target.closest('.dropdown-overlay')) { const drop = document.getElementById('chapters-dropdown'); if (drop) drop.remove(); }
     });
 
-        // Toggle modo búsqueda
     document.getElementById('search-mode-toggle').onclick = () => {
         searchAllVersions = !searchAllVersions;
         const btn = document.getElementById('search-mode-toggle');
@@ -413,1482 +193,47 @@ function setupStaticEventListeners() {
         btn.querySelector('span').innerText = searchAllVersions ? 'Todas' : 'Activas';
     };
 
-    // Buscador
     const searchInput = document.getElementById('search-input');
     searchInput.onkeyup = async (e) => {
         if (e.key !== "Enter") return;
         const query = e.target.value.trim();
         if (query.length < 2) return;
-
         const list = document.getElementById('results-list');
         list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Buscando...</p>";
         document.getElementById('search-title-display').innerText = `"${query}"`;
-
-        // Reset filtros
         activeFilters = { testament: null, versions: new Set(), books: new Set() };
-
-        if (searchAllVersions) {
-            lastSearchResults = await window.api.searchAll({ keyword: query });
-        } else {
-            lastSearchResults = await window.api.search({ version: activeVersions[0], keyword: query });
-        }
-
+        lastSearchResults = searchAllVersions
+            ? await window.api.searchAll({ keyword: query })
+            : await window.api.search({ version: activeVersions[0], keyword: query });
         buildFilters(lastSearchResults);
         renderFilteredResults();
     };
 
-    // Marcatextos y Copiado
     document.querySelectorAll('.btn-color').forEach(btn => btn.onclick = () => applyHighlight(btn.dataset.color));
     document.querySelector('.btn-color-clear').onclick = () => applyHighlight('transparent');
     document.getElementById('action-copy').onclick = copySelected;
-    document.getElementById('action-fav').onclick = addToFavorites; // ✨ NUEVA FUNCIÓN
+    document.getElementById('action-fav').onclick = addToFavorites;
     document.getElementById('action-cancel').onclick = cancelSelection;
-    
-     // Botón para abrir la lista de notas (Header)
-    document.getElementById('btn-open-notes').onclick = loadNotes;
-    document.getElementById('btn-close-notes').onclick = () => document.getElementById('notes-modal').classList.add('hidden');
 
-    // Botón para abrir el editor de notas (Barra de acciones)
-    document.getElementById('action-note').onclick = () => openNoteEditor();
-
-    // Botones dentro del editor de notas
-    document.getElementById('btn-cancel-note').onclick = () => document.getElementById('note-editor-modal').classList.add('hidden');
-    document.getElementById('btn-save-note').onclick = saveCurrentNote;
-
-    // Filtro de highlights por color
     document.querySelectorAll('.hl-filter-dot').forEach(dot => {
-        dot.onclick = async () => {
+        dot.onclick = () => {
             document.querySelectorAll('.hl-filter-dot').forEach(d => d.classList.remove('active'));
             dot.classList.add('active');
             const color = dot.dataset.color;
-            const items = document.querySelectorAll('.highlight-item');
-            items.forEach(item => {
+            document.querySelectorAll('.highlight-item').forEach(item => {
                 item.style.display = (color === 'all' || item.dataset.color === color) ? '' : 'none';
             });
         };
     });
 
-    // Menú hamburguesa HEADER
-    document.getElementById('btn-hamburger').onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('hamburger-dropdown').classList.toggle('hidden');
-    };
-
+    document.getElementById('btn-hamburger').onclick = (e) => { e.stopPropagation(); document.getElementById('hamburger-dropdown').classList.toggle('hidden'); };
     document.querySelectorAll('.hamburger-item').forEach(item => {
-        item.onclick = () => {
-            document.getElementById('hamburger-dropdown').classList.add('hidden');
-            document.getElementById(item.dataset.target).click();
-        };
+        item.onclick = () => { document.getElementById('hamburger-dropdown').classList.add('hidden'); document.getElementById(item.dataset.target).click(); };
     });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#header-hamburger-controls')) document.getElementById('hamburger-dropdown').classList.add('hidden'); });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#header-hamburger-controls')) {
-            document.getElementById('hamburger-dropdown').classList.add('hidden');
-        }
-    });
-
-    // Bosquejos
     document.getElementById('btn-open-outlines').onclick = () => openOutlinesScreen();
-
     document.getElementById('btn-open-exegesis').onclick = () => openExegesisScreen();
 }
-
-// --- FUNCIONES DE SOPORTE ---
-function setupScrollSync() {
-    const columns = document.querySelectorAll('.version-column');
-    let syncSource = null; // ← qué columna inició el scroll
-
-    columns.forEach(col => {
-        col.onscroll = () => {
-            // Compact header
-            columns.forEach(c => {
-                const header = c.querySelector('.column-header');
-                if (header) header.classList.toggle('compact', c.scrollTop > 30);
-            });
-
-            // Si hay una fuente activa y no soy yo, ignorar
-            if (syncSource && syncSource !== col) return;
-
-            syncSource = col;
-            const percentage = col.scrollTop / (col.scrollHeight - col.clientHeight);
-
-            columns.forEach(otherCol => {
-                if (otherCol === col) return;
-                otherCol.scrollTop = percentage * (otherCol.scrollHeight - otherCol.clientHeight);
-            });
-
-            clearTimeout(col._syncTimer);
-            col._syncTimer = setTimeout(() => { syncSource = null; }, 50);
-        };
-    });
-}
-
-function toggleVerseSelection(element, version, verseNum, text) {
-    const isSelected = element.classList.toggle('selected');
-    if (isSelected) { selectedVerses.push({ version, book: currentBook, chapter: currentChapter, verse: verseNum, text }); }
-    else { selectedVerses = selectedVerses.filter(v => !(v.verse === verseNum && v.version === version)); }
-    updateActionToolbar();
-}
-
-function updateActionToolbar() {
-    const toolbar = document.getElementById('action-toolbar');
-    if (selectedVerses.length > 0) { toolbar.classList.remove('hidden'); document.getElementById('selected-info').innerText = selectedVerses.length; }
-    else { toolbar.classList.add('hidden'); }
-}
-
-async function applyHighlight(color) {
-    for (const v of selectedVerses) {
-        await window.api.saveHighlight({ book: v.book, chapter: v.chapter, verse: v.verse, version: v.version, color });
-        const cols = document.querySelectorAll(`.version-column[data-version="${v.version}"]`);
-        cols.forEach(col => {
-            const vEl = col.querySelector(`.verse[data-verse="${v.verse}"]`);
-            if (vEl) {
-                vEl.style.backgroundColor = color === 'transparent' ? '' : color;
-                if (color === 'transparent') vEl.classList.remove('highlighted'); else vEl.classList.add('highlighted');
-                vEl.classList.remove('selected');
-            }
-        });
-    }
-    cancelSelection();
-}
-
-async function copySelected() {
-    if (selectedVerses.length === 0) return;
-    selectedVerses.sort((a, b) => a.verse - b.verse);
-    let text = selectedVerses.map(v => `${v.verse}. ${v.text}`).join(" ");
-    const first = selectedVerses[0];
-    text += `\n(${first.book} ${first.chapter}:${first.verse}${selectedVerses.length > 1 ? '-' + selectedVerses[selectedVerses.length-1].verse : ''}, ${first.version})`;
-    await navigator.clipboard.writeText(text);
-    const btn = document.getElementById('action-copy');
-    btn.innerText = "✅"; setTimeout(() => { btn.innerText = "📋"; cancelSelection(); }, 1000);
-}
-
-function cancelSelection() {
-    selectedVerses = [];
-    document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
-    updateActionToolbar();
-}
-
-function loadAppSettings() {
-    const savedSize = localStorage.getItem('fontSize') || '18';
-    const savedTheme = localStorage.getItem('theme') || 'theme-dark';
-    const savedFont = localStorage.getItem('fontFamily') || "'Segoe UI', sans-serif";
-    document.documentElement.style.setProperty('--font-size', savedSize + 'px');
-    document.documentElement.style.setProperty('--font-family', savedFont);
-    document.body.className = savedTheme;
-    document.getElementById('font-size-slider').value = savedSize;
-    document.getElementById('font-size-value').innerText = savedSize + 'px';
-    document.getElementById('font-family-select').value = savedFont;
-    document.querySelectorAll('.theme-dot').forEach(dot => { if (dot.dataset.theme === savedTheme) dot.classList.add('active'); });
-      // ✨ Cargar favoritos al iniciar
-    loadFavorites();
-}
-
-function showStartupSelector() {
-    const modal = document.getElementById('startup-modal');
-    const list = document.getElementById('startup-version-list');
-    if (!modal || !list) return;
-
-    list.innerHTML = "";
-    modal.classList.remove('hidden');
-
-    allAvailableVersions.forEach(v => {
-        const btn = document.createElement('button');
-        btn.className = "startup-card-btn";
-        btn.innerText = v; // Siglas de la versión
-        btn.onclick = () => {
-            activeVersions = [v]; // Establecemos la versión elegida
-            modal.classList.add('hidden'); // Ocultamos el modal
-            loadContent(); // Cargamos Génesis 1 de esa versión
-        };
-        list.appendChild(btn);
-    });
-}
-
-// ============================================
-// ✨ FUNCIONES DE FAVORITOS - MEJORADO
-// ============================================
-
-async function addToFavorites() {
-    if (selectedVerses.length === 0) return;
-    
-    try {
-        // Agrupar versículos por libro y capítulo
-        const grouped = {};
-        selectedVerses.forEach(v => {
-            const key = `${v.book}|${v.chapter}`;
-            if (!grouped[key]) {
-                grouped[key] = [];
-            }
-            grouped[key].push(v);
-        });
-        
-        // Guardar como UN SOLO favorito agrupado
-        for (const key in grouped) {
-            const verses = grouped[key];
-            const first = verses[0];
-            
-            // Crear texto concatenado de todos los versículos
-            const combinedText = verses.map(v => `${v.verse}. ${v.text}`).join(" ");
-            const verseRange = verses.length > 1 
-                ? `${verses[0].verse}-${verses[verses.length-1].verse}`
-                : `${verses[0].verse}`;
-            
-            await window.api.saveFavorite({ 
-                book: first.book, 
-                chapter: first.chapter, 
-                verse: verseRange,  // Rango de versículos
-                text: combinedText,  // Texto combinado
-                version: first.version 
-            });
-        }
-        
-        // Feedback visual
-        const btn = document.getElementById('action-fav');
-        const originalText = btn.innerText;
-        btn.innerText = "✅";
-        setTimeout(() => { btn.innerText = originalText; }, 1000);
-        
-        // Recargar favoritos
-        favoritesCache = await window.api.getFavorites();
-        
-    } catch (err) {
-        console.error("Error al guardar favorito:", err);
-    }
-}
-
-async function loadFavorites() {
-    try {
-        favoritesCache = await window.api.getFavorites();
-        const list = document.getElementById('favorites-list');
-        list.innerHTML = "";
-        
-        if (favoritesCache.length === 0) {
-            list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">📭 No tienes favoritos aún</div>';
-            return;
-        }
-        
-        favoritesCache.forEach(fav => {
-            const div = document.createElement('div');
-            div.classList.add('favorite-item');
-            
-            // Referencia del libro y capítulo
-            const ref = document.createElement('div');
-            ref.classList.add('favorite-ref');
-            ref.innerText = `${fav.book_name} ${fav.chapter}:${fav.verse_number}`;
-            
-            // Texto del/los versículo(s)
-            const text = document.createElement('div');
-            text.classList.add('favorite-text');
-            text.innerText = fav.text;
-            
-            // Botones de acción
-            const actions = document.createElement('div');
-            actions.classList.add('favorite-actions');
-            
-            // Botón: Ir al versículo
-            const goBtn = document.createElement('button');
-            goBtn.classList.add('favorite-action-btn');
-            goBtn.innerText = "📖 Ir";
-            goBtn.onclick = (e) => {
-                e.stopPropagation();
-                goToFavorite(fav);
-            };
-            
-            // Botón: Eliminar
-            const delBtn = document.createElement('button');
-            delBtn.classList.add('favorite-action-btn');
-            delBtn.innerText = "🗑️ Eliminar";
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                deleteFavorite(fav);
-            };
-            
-            actions.appendChild(goBtn);
-            actions.appendChild(delBtn);
-            
-            // Armar el contenedor
-            div.appendChild(ref);
-            div.appendChild(text);
-            div.appendChild(actions);
-            
-            list.appendChild(div);
-        });
-        
-    } catch (err) {
-        console.error("Error al cargar favoritos:", err);
-    }
-}
-
-async function goToFavorite(fav) {
-    // Cambiar libro y capítulo
-    currentBook = fav.book_name;
-    currentChapter = fav.chapter;
-    
-    // Cargar el contenido
-    await loadContent();
-    
-    // Cerrar modal
-    document.getElementById('favorites-modal').classList.add('hidden');
-    
-    // Esperar a que el DOM se renderice
-    setTimeout(() => {
-        scrollToVerse(fav.verse_number);
-    }, 100);
-}
-
-function scrollToVerse(verseNumber) {
-    // Encontrar el elemento del versículo
-    const verseEl = document.querySelector(`.verse[data-verse="${verseNumber}"]`);
-    
-    if (!verseEl) {
-        console.warn(`Versículo ${verseNumber} no encontrado`);
-        return;
-    }
-    
-    // Obtener el contenedor (columna)
-    const column = verseEl.closest('.version-column');
-    
-    if (!column) return;
-    
-    // Calcular la posición para centrar
-    const verseTop = verseEl.offsetTop;
-    const columnHeight = column.clientHeight;
-    const verseHeight = verseEl.offsetHeight;
-    
-    // Scroll suave al centro
-    const targetScroll = verseTop - (columnHeight / 2) + (verseHeight / 2);
-    
-    column.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth'
-    });
-    
-    // Highlight temporal para indicar dónde estamos
-    verseEl.classList.add('selected');
-    setTimeout(() => {
-        verseEl.classList.remove('selected');
-    }, 2000);
-}
-
-async function deleteFavorite(fav) {
-    try {
-        await window.api.removeFavorite({
-            book: fav.book_name,
-            chapter: fav.chapter,
-            verse: fav.verse_number,
-            version: fav.version
-        });
-        
-        // Recargar lista
-        await loadFavorites();
-        
-    } catch (err) {
-        console.error("Error al eliminar favorito:", err);
-    }
-}
-
-// FUNCIONES DE EDITOR DE NOTAS
-function openNoteEditor(existingNote = null) {
-    const modal = document.getElementById('note-editor-modal');
-    const textarea = document.getElementById('note-textarea');
-    const refLabel = document.getElementById('note-editor-ref');
-
-    if (existingNote) {
-        // MODO EDICIÓN
-        editingNoteId = existingNote.id;
-        refLabel.innerText = `Editando: ${existingNote.ref}`;
-        textarea.value = existingNote.content;
-    } else {
-        // MODO NUEVA NOTA
-        if (selectedVerses.length === 0) return;
-        editingNoteId = null;
-        selectedVerses.sort((a, b) => a.verse - b.verse);
-        const first = selectedVerses[0];
-        const last = selectedVerses[selectedVerses.length - 1];
-        const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
-        refLabel.innerText = `${first.book} ${first.chapter}:${range}`;
-        textarea.value = "";
-    }
-    modal.classList.remove('hidden');
-    textarea.focus();
-}
-
-async function saveCurrentNote() {
-    const content = document.getElementById('note-textarea').value.trim();
-    if (!content) return;
-
-    if (editingNoteId) {
-        // Actualizar nota existente
-        await window.api.updateNote(editingNoteId, content);
-        editingNoteId = null;
-    } else {
-        // Guardar nota nueva
-        const first = selectedVerses[0];
-        const last = selectedVerses[selectedVerses.length - 1];
-        const range = selectedVerses.length > 1 ? `${first.verse}-${last.verse}` : first.verse;
-        await window.api.saveNote({
-            book: first.book, chapter: first.chapter, verse: range.toString(),
-            content: content, version: first.version
-        });
-    }
-
-    document.getElementById('note-editor-modal').classList.add('hidden');
-    cancelSelection();
-    // Si el modal de la lista estaba abierto, lo refrescamos
-    if (!document.getElementById('notes-modal').classList.contains('hidden')) loadNotes();
-}
-
-async function loadNotes() {
-    const notes = await window.api.getNotes();
-    const list = document.getElementById('notes-list');
-    list.innerHTML = "";
-    document.getElementById('notes-modal').classList.remove('hidden');
-
-    if (!notes || notes.length === 0) {
-        list.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>No tienes notas guardadas.</p>";
-        return;
-    }
-
-    notes.forEach(n => {
-        const div = document.createElement('div');
-        div.className = "note-item"; // Usamos la misma clase visual que favoritos
-        div.innerHTML = `
-            <div class="fav-item-header">
-                <span class="note-item-ref" style="font-weight:800; color: var(--accent);">${n.book_name} ${n.chapter}:${n.verse_number} (${n.version})</span>
-            </div>
-            <p style="margin-top:10px; white-space: pre-wrap; color: var(--text-main);">${n.content}</p>
-            
-            <div class="item-footer-actions" style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
-                <button class="btn-small-action btn-ir">📖 IR</button>
-                <button class="btn-small-action btn-editar">✏️ EDITAR</button>
-                <button class="btn-small-action delete btn-eliminar">🗑️ ELIMINAR</button>
-            </div>
-        `;
-
-        const btnIr = div.querySelector('.btn-ir');
-        btnIr.addEventListener('click', async () => {
-            currentBook = n.book_name;
-            currentChapter = n.chapter;
-            await loadContent();
-            document.getElementById('notes-modal').classList.add('hidden');
-            setTimeout(() => {
-                scrollToVerse(n.verse_number);
-            }, 100);
-        });
-
-        const btnEliminar = div.querySelector('.btn-eliminar');
-        btnEliminar.addEventListener('click', () => {
-            window.deleteNoteBtn(n.id);
-        });
-
-        const btnEditar = div.querySelector('.btn-editar');
-        btnEditar.addEventListener('click', () => {
-            window.editNote(n.id, `${n.book_name} ${n.chapter}:${n.verse_number}`, n.content);
-        });
-
-        list.appendChild(div);
-    });
-}
-
-// --- AYUDANTES PARA LOS BOTONES (Globales) ---
-window.editNote = (id, ref, content) => {
-    document.getElementById('notes-modal').classList.add('hidden');
-    openNoteEditor({ id, ref, content });
-};
-
-window.goToPassage = async (book, chapter, verse) => {
-    currentBook = book;
-    currentChapter = parseInt(chapter);
-
-    document.getElementById('notes-modal').classList.add('hidden');
-    document.getElementById('favs-modal').classList.add('hidden');
-
-    const firstVerse = verse.toString().split('-')[0]; // En caso de rango, tomar el primer versículo
-    await loadContent(firstVerse);
-    setTimeout(() => {
-        scrollToVerse(parseInt(firstVerse));
-    }, 300);
-};
-
-window.deleteNoteBtn = async (id) => {
-    const respuesta = confirm("¿Estás seguro de que quieres eliminar esta nota?");
-    if (respuesta) {
-        try {
-            await window.api.deleteNote(id);
-            loadNotes();
-        } catch (error) {
-            console.error("Error al eliminar nota:", error);
-        }
-    }
-};
-
-// ============================================
-// ✨ FUNCIONES DE HIGHLIGHTS
-// ============================================
-
-document.getElementById('btn-open-highlights').onclick = async () => {
-    document.getElementById('highlights-modal').classList.remove('hidden');
-    await loadHighlights();
-};
-document.getElementById('btn-close-highlights').onclick = () => {
-    document.getElementById('highlights-modal').classList.add('hidden');
-};
-
-async function loadHighlights() {
-    try {
-        const highlights = await window.api.getAllHighlights();
-        const list = document.getElementById('highlights-list');
-        list.innerHTML = "";
-
-        if (!highlights || highlights.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:40px;">🖍️ No tienes highlights aún</div>';
-            return;
-        }
-
-        highlights.forEach(h => {
-            const div = document.createElement('div');
-            div.classList.add('highlight-item');
-            div.style.borderLeft = `4px solid ${h.color}`;
-            div.dataset.color = h.color; // Para filtrado por color
-
-            div.innerHTML = `
-                <div class="highlight-color-dot" style="background:${h.color}"></div>
-                <div class="highlight-body">
-                    <span class="highlight-ref">${h.book_name} ${h.chapter}:${h.verse_number} · ${h.version}</span>
-                </div>
-                <div class="item-footer-actions">
-                    <button class="btn-small-action btn-hl-ir">📖 IR</button>
-                    <button class="btn-small-action btn-hl-del">🗑️ ELIMINAR</button>
-                </div>
-            `;
-
-            div.querySelector('.btn-hl-ir').onclick = async () => {
-                currentBook = h.book_name;
-                currentChapter = h.chapter;
-                await loadContent();
-                document.getElementById('highlights-modal').classList.add('hidden');
-                setTimeout(() => scrollToVerse(h.verse_number), 200);
-            };
-
-            div.querySelector('.btn-hl-del').onclick = async () => {
-                await window.api.saveHighlight({
-                    book: h.book_name, chapter: h.chapter,
-                    verse: h.verse_number, version: h.version,
-                    color: 'transparent'
-                });
-                await loadHighlights();
-                // Refrescar columnas si estamos en ese mismo capítulo
-                if (currentBook === h.book_name && currentChapter === h.chapter) loadContent();
-            };
-
-            list.appendChild(div);
-        });
-
-    } catch (err) {
-        console.error("Error al cargar highlights:", err);
-    }
-}
-
-// ============================================
-// ✨ FILTROS DE BÚSQUEDA
-// ============================================
-
-const oldTestament = ["Génesis","Éxodo","Levítico","Números","Deuteronomio","Josué","Jueces","Rut",
-    "1 Samuel","2 Samuel","1 Reyes","2 Reyes","1 Crónicas","2 Crónicas","Esdras","Nehemías","Ester",
-    "Job","Salmos","Proverbios","Eclesiastés","Cantares","Isaías","Jeremías","Lamentaciones",
-    "Ezequiel","Daniel","Oseas","Joel","Amós","Abdías","Jonás","Miqueas","Nahúm","Habacuc",
-    "Sofonías","Hageo","Zacarías","Malaquías"];
-
-const newTestament = ["Mateo","Marcos","Lucas","Juan","Hechos","Romanos","1 Corintios","2 Corintios",
-    "Gálatas","Efesios","Filipenses","Colosenses","1 Tesalonicenses","2 Tesalonicenses","1 Timoteo",
-    "2 Timoteo","Tito","Filemón","Hebreos","Santiago","1 Pedro","2 Pedro","1 Juan","2 Juan",
-    "3 Juan","Judas","Apocalipsis"];
-
-function getTestament(book) {
-    if (oldTestament.includes(book)) return 'AT';
-    if (newTestament.includes(book)) return 'NT';
-    return null;
-}
-
-function buildFilters(results) {
-    const bar = document.getElementById('search-filters-bar');
-    const scroll = document.getElementById('search-filters-scroll');
-    scroll.innerHTML = "";
-
-    if (!results || results.length === 0) {
-        bar.classList.add('hidden');
-        return;
-    }
-
-    // Recopilar valores únicos
-    const versions = [...new Set(results.map(r => r.version))];
-    const books = [...new Set(results.map(r => r.book_name))];
-    const hasAT = books.some(b => oldTestament.includes(b));
-    const hasNT = books.some(b => newTestament.includes(b));
-
-    // Grupo: Testamento (solo si hay resultados en ambos)
-    if (hasAT && hasNT) {
-        const group = createFilterGroup('Testamento', [
-            { label: 'A.T.', key: 'AT' },
-            { label: 'N.T.', key: 'NT' }
-        ], (key) => {
-            activeFilters.testament = activeFilters.testament === key ? null : key;
-            renderFilteredResults();
-            updateFilterChips();
-        }, (key) => activeFilters.testament === key);
-        scroll.appendChild(group);
-        scroll.appendChild(createSeparator());
-    }
-
-    // Grupo: Versiones (solo si hay más de una)
-    if (versions.length > 1) {
-        const group = createFilterGroup('Versión', 
-            versions.map(v => ({ label: v, key: v })),
-            (key) => {
-                if (activeFilters.versions.has(key)) activeFilters.versions.delete(key);
-                else activeFilters.versions.add(key);
-                renderFilteredResults();
-                updateFilterChips();
-            },
-            (key) => activeFilters.versions.has(key)
-        );
-        scroll.appendChild(group);
-        scroll.appendChild(createSeparator());
-    }
-
-    // Grupo: Libros (solo si hay más de uno)
-    if (books.length > 1) {
-        const group = createFilterGroup('Libro',
-            books.map(b => ({ label: b, key: b })),
-            (key) => {
-                if (activeFilters.books.has(key)) activeFilters.books.delete(key);
-                else activeFilters.books.add(key);
-                renderFilteredResults();
-                updateFilterChips();
-            },
-            (key) => activeFilters.books.has(key)
-        );
-        scroll.appendChild(group);
-    }
-
-    bar.classList.remove('hidden');
-}
-
-function createFilterGroup(label, items, onToggle, isActive) {
-    const group = document.createElement('div');
-    group.classList.add('filter-group');
-
-    const lbl = document.createElement('span');
-    lbl.classList.add('filter-group-label');
-    lbl.innerText = label;
-    group.appendChild(lbl);
-
-    items.forEach(item => {
-        const chip = document.createElement('div');
-        chip.classList.add('filter-chip');
-        chip.innerText = item.label;
-        chip.dataset.key = item.key;
-        if (isActive(item.key)) chip.classList.add('active');
-        chip.onclick = () => onToggle(item.key);
-        group.appendChild(chip);
-    });
-
-    return group;
-}
-
-function createSeparator() {
-    const sep = document.createElement('div');
-    sep.classList.add('filter-separator');
-    return sep;
-}
-
-function updateFilterChips() {
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        const key = chip.dataset.key;
-        const isTestament = key === 'AT' || key === 'NT';
-        const isVersion = [...activeFilters.versions].includes(key) || 
-                          (activeFilters.versions.size === 0 && !isTestament && !activeFilters.books.has(key));
-        
-        if (isTestament) {
-            chip.classList.toggle('active', activeFilters.testament === key);
-        } else if (activeFilters.versions.has(key)) {
-            chip.classList.toggle('active', true);
-        } else if (activeFilters.books.has(key)) {
-            chip.classList.toggle('active', true);
-        } else {
-            chip.classList.toggle('active', false);
-        }
-    });
-}
-
-function applyFilters(results) {
-    return results.filter(r => {
-        // Filtro testamento
-        if (activeFilters.testament) {
-            const t = getTestament(r.book_name);
-            if (t !== activeFilters.testament) return false;
-        }
-        // Filtro versiones
-        if (activeFilters.versions.size > 0 && !activeFilters.versions.has(r.version)) return false;
-        // Filtro libros
-        if (activeFilters.books.size > 0 && !activeFilters.books.has(r.book_name)) return false;
-        return true;
-    });
-}
-
-function renderFilteredResults() {
-    const list = document.getElementById('results-list');
-    list.innerHTML = "";
-    const filtered = applyFilters(lastSearchResults);
-
-    document.getElementById('results-count').innerText = `${filtered.length} resultados`;
-
-    if (filtered.length === 0) {
-        list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Sin resultados para estos filtros</p>";
-        return;
-    }
-
-    if (searchAllVersions) {
-        // Agrupar por versión
-        const grouped = {};
-        filtered.forEach(r => {
-            if (!grouped[r.version]) grouped[r.version] = [];
-            grouped[r.version].push(r);
-        });
-
-        Object.keys(grouped).forEach(version => {
-            const vHeader = document.createElement('div');
-            vHeader.style.cssText = `padding: 8px 0; margin: 15px 0 8px 0; font-size: 0.7rem; 
-                font-weight: 800; letter-spacing: 2px; color: var(--accent); 
-                text-transform: uppercase; border-bottom: 1px solid var(--border);`;
-            vHeader.innerText = `${version} — ${grouped[version].length} resultados`;
-            list.appendChild(vHeader);
-
-            grouped[version].forEach(res => list.appendChild(createResultItem(res, version)));
-        });
-    } else {
-        filtered.forEach(res => list.appendChild(createResultItem(res, res.version)));
-    }
-}
-
-function createResultItem(res, version) {
-    const div = document.createElement('div');
-    div.classList.add('search-item');
-    div.innerHTML = `
-        <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
-        <p>${res.text}</p>
-    `;
-    div.onclick = () => {
-        if (!activeVersions.includes(version)) activeVersions.push(version);
-        currentBook = res.book_name;
-        currentChapter = res.chapter;
-        document.getElementById('search-modal').classList.add('hidden');
-        loadContent(res.verse_number);
-    };
-    return div;
-}
-
-// ============================================
-// ✨ TOOLTIPS CUSTOM
-// ============================================
-function setupTooltips() {
-    const tooltip = document.getElementById('tooltip');
-
-    document.querySelectorAll('[title]').forEach(el => {
-        const text = el.getAttribute('title');
-        el.removeAttribute('title'); // elimina el tooltip nativo
-        el.dataset.tooltip = text;   // guarda el texto en data
-
-        el.addEventListener('mouseenter', (e) => {
-            tooltip.innerText = el.dataset.tooltip;
-            tooltip.classList.add('visible');
-            moveTooltip(e);
-        });
-
-        el.addEventListener('mousemove', moveTooltip);
-
-        el.addEventListener('mouseleave', () => {
-            tooltip.classList.remove('visible');
-        });
-    });
-
-    function moveTooltip(e) {
-        const offset = 12;
-        let x = e.clientX + offset;
-        let y = e.clientY + offset;
-
-        // Evitar que se salga de la pantalla
-        if (x + tooltip.offsetWidth > window.innerWidth) x = e.clientX - tooltip.offsetWidth - offset;
-        if (y + tooltip.offsetHeight > window.innerHeight) y = e.clientY - tooltip.offsetHeight - offset;
-
-        tooltip.style.left = x + 'px';
-        tooltip.style.top = y + 'px';
-    }
-}
-
-    // ============================================
-    // ✨ PANTALLA DE BOSQUEJOS
-    // ============================================
-
-    let currentOutlineId = null;
-    let currentOutlineType = null;
-
-    function openOutlinesScreen() {
-        document.getElementById('outlines-screen').classList.remove('hidden');
-        loadOutlinesList();
-    }
-
-    function closeOutlinesScreen() {
-        document.getElementById('outlines-screen').classList.add('hidden');
-        currentOutlineId = null;
-        currentOutlineType = null;
-    }
-
-    async function loadOutlinesList() {
-        showOutlinesView('list');
-        const grid = document.getElementById('outlines-grid');
-        grid.innerHTML = "";
-
-        const outlines = await window.api.getOutlines();
-        if (!outlines || outlines.length === 0) return;
-
-        const typeLabels = { full: '📖 Homilético', simple: '📝 Sencillo', free: '✏️ Libre' };
-
-        outlines.forEach(o => {
-            const card = document.createElement('div');
-            card.classList.add('outline-card');
-            card.innerHTML = `
-                <div class="outline-card-type">${typeLabels[o.type] || o.type}</div>
-                <div class="outline-card-title">${o.title || 'Sin título'}</div>
-                <div class="outline-card-date">${new Date(o.updated_at).toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
-                <div class="outline-card-actions">
-                    <button class="btn-small-action btn-edit-outline">✏️ Editar</button>
-                    <button class="btn-small-action btn-delete-outline">🗑️ Eliminar</button>
-                </div>
-            `;
-
-            card.querySelector('.btn-edit-outline').onclick = (e) => {
-                e.stopPropagation();
-                openOutlineEditor(o.type, o.id);
-            };
-
-            card.querySelector('.btn-delete-outline').onclick = async (e) => {
-                e.stopPropagation();
-                if (confirm(`¿Eliminar "${o.title || 'Sin título'}"?`)) {
-                    await window.api.deleteOutline(o.id);
-                    loadOutlinesList();
-                }
-            };
-
-            card.onclick = () => openOutlineEditor(o.type, o.id);
-            grid.appendChild(card);
-        });
-    }
-
-    function showOutlinesView(view) {
-        document.getElementById('outlines-list-view').classList.toggle('hidden', view !== 'list');
-        document.getElementById('outlines-type-selector').classList.toggle('hidden', view !== 'type');
-        document.getElementById('outlines-editor-view').classList.toggle('hidden', view !== 'editor');
-    }
-
-    async function openOutlineEditor(type, id = null) {
-        currentOutlineType = type;
-        currentOutlineId = id;
-
-        // Ocultar todos los editores
-        document.querySelectorAll('.editor-form').forEach(f => f.classList.add('hidden'));
-        document.getElementById(`editor-${type}`).classList.remove('hidden');
-
-        // Limpiar campos
-        clearEditorFields(type);
-
-        if (id) {
-            // Cargar datos existentes
-            let data;
-            if (type === 'full') data = await window.api.getFullOutline(id);
-            else if (type === 'simple') data = await window.api.getSimpleOutline(id);
-            else data = await window.api.getFreeOutline(id);
-
-            document.getElementById('outline-title-input').value = data.title || '';
-            fillEditorFields(type, data);
-            if (type !== 'free') renderPoints(type, data.points || []);
-        }
-
-        showOutlinesView('editor');
-    }
-
-    function clearEditorFields(type) {
-        document.getElementById('outline-title-input').value = '';
-        if (type === 'full') {
-            ['theme','general-purpose','specific-purpose','bible-base','introduction',
-             'sermon-question','proposition','transition-prayer','key-word',
-             'conclusion-recap','conclusion-application','conclusion-invitation']
-            .forEach(f => {
-                const el = document.getElementById(`full-${f}`);
-                if (el) el.value = '';
-            });
-            document.getElementById('points-list-full').innerHTML = '';
-        } else if (type === 'simple') {
-            document.getElementById('simple-bible-base').value = '';
-            document.getElementById('points-list-simple').innerHTML = '';
-        } else {
-            document.getElementById('free-content').value = '';
-        }
-    }
-
-    function fillEditorFields(type, data) {
-        if (type === 'full') {
-            document.getElementById('full-theme').value = data.theme || '';
-            document.getElementById('full-general-purpose').value = data.general_purpose || '';
-            document.getElementById('full-specific-purpose').value = data.specific_purpose || '';
-            document.getElementById('full-bible-base').value = data.bible_base || '';
-            document.getElementById('full-introduction').value = data.introduction || '';
-            document.getElementById('full-sermon-question').value = data.sermon_question || '';
-            document.getElementById('full-proposition').value = data.proposition || '';
-            document.getElementById('full-transition-prayer').value = data.transition_prayer || '';
-            document.getElementById('full-key-word').value = data.key_word || '';
-            document.getElementById('full-conclusion-recap').value = data.conclusion_recap || '';
-            document.getElementById('full-conclusion-application').value = data.conclusion_application || '';
-            document.getElementById('full-conclusion-invitation').value = data.conclusion_invitation || '';
-        } else if (type === 'simple') {
-            document.getElementById('simple-bible-base').value = data.bible_base || '';
-        } else {
-            document.getElementById('free-content').value = data.content || '';
-        }
-    }
-
-    function renderPoints(type, points) {
-        const container = document.getElementById(`points-list-${type}`);
-        container.innerHTML = '';
-        points.forEach((p, i) => addPointToDOM(type, i + 1, p));
-    }
-
-    function addPointToDOM(type, num, data = {}) {
-        const container = document.getElementById(`points-list-${type}`);
-        const div = document.createElement('div');
-        div.classList.add('point-item');
-        div.innerHTML = `
-            <div class="point-item-header">
-                <span class="point-number">Punto ${num}</span>
-            </div>
-            <input type="text" class="outline-input point-title" placeholder="Título del punto..." value="${data.title || ''}">
-            <input type="text" class="outline-input point-verse-ref" placeholder="Referencia (ej: Juan 3:16)" value="${data.verse_ref || ''}">
-            <textarea class="outline-textarea point-verse-text" placeholder="Texto del versículo...">${data.verse_text || ''}</textarea>
-            <textarea class="outline-textarea tall point-development" placeholder="Desarrollo y explicación...">${data.development || ''}</textarea>
-            <textarea class="outline-textarea point-transition" placeholder="Oración de transición...">${data.transition || ''}</textarea>
-            <div class="point-item-actions">
-                <button class="btn-delete-point">🗑️ Eliminar punto</button>
-            </div>
-        `;
-
-        div.querySelector('.btn-delete-point').onclick = () => {
-            div.remove();
-            // Renumerar
-            container.querySelectorAll('.point-number').forEach((el, i) => {
-                el.innerText = `Punto ${i + 1}`;
-            });
-        };
-
-        container.appendChild(div);
-    }
-
-    function getPointsFromDOM(type) {
-        const container = document.getElementById(`points-list-${type}`);
-        return [...container.querySelectorAll('.point-item')].map(item => ({
-            title: item.querySelector('.point-title').value,
-            verse_ref: item.querySelector('.point-verse-ref').value,
-            verse_text: item.querySelector('.point-verse-text').value,
-            development: item.querySelector('.point-development').value,
-            transition: item.querySelector('.point-transition').value,
-        }));
-    }
-
-    async function saveCurrentOutline() {
-        const title = document.getElementById('outline-title-input').value.trim() || 'Sin título';
-        const type = currentOutlineType;
-
-        let data = { title };
-
-        if (type === 'full') {
-            data = {
-                ...data,
-                theme: document.getElementById('full-theme').value,
-                general_purpose: document.getElementById('full-general-purpose').value,
-                specific_purpose: document.getElementById('full-specific-purpose').value,
-                bible_base: document.getElementById('full-bible-base').value,
-                introduction: document.getElementById('full-introduction').value,
-                sermon_question: document.getElementById('full-sermon-question').value,
-                proposition: document.getElementById('full-proposition').value,
-                transition_prayer: document.getElementById('full-transition-prayer').value,
-                key_word: document.getElementById('full-key-word').value,
-                conclusion_recap: document.getElementById('full-conclusion-recap').value,
-                conclusion_application: document.getElementById('full-conclusion-application').value,
-                conclusion_invitation: document.getElementById('full-conclusion-invitation').value,
-            };
-        } else if (type === 'simple') {
-            data.bible_base = document.getElementById('simple-bible-base').value;
-        } else {
-            data.content = document.getElementById('free-content').value;
-        }
-
-        try {
-            if (currentOutlineId) {
-                data.id = currentOutlineId;
-                if (type === 'full') await window.api.updateFullOutline(data);
-                else if (type === 'simple') await window.api.updateSimpleOutline(data);
-                else await window.api.updateFreeOutline(data);
-            } else {
-                let result;
-                if (type === 'full') result = await window.api.saveFullOutline(data);
-                else if (type === 'simple') result = await window.api.saveSimpleOutline(data);
-                else result = await window.api.saveFreeOutline(data);
-                currentOutlineId = result.id;
-            }
-
-            // Guardar puntos si aplica
-            if (type !== 'free') {
-                const points = getPointsFromDOM(type);
-                await window.api.saveOutlinePoints({ outlineId: currentOutlineId, points });
-            }
-
-            // Feedback
-            const btn = document.getElementById('btn-save-outline');
-            btn.innerText = '✅ Guardado';
-            setTimeout(() => { btn.innerText = 'Guardar'; }, 1500);
-
-        } catch (err) {
-            console.error('Error al guardar bosquejo:', err);
-        }
-    }
-
-    async function exportOutlineToPdf() {
-    const type = currentOutlineType;
-    const title = document.getElementById('outline-title-input').value || 'Sin título';
-
-    let bodyHtml = '';
-
-    if (type === 'full') {
-        const theme = document.getElementById('full-theme').value;
-        const generalPurpose = document.getElementById('full-general-purpose').value;
-        const specificPurpose = document.getElementById('full-specific-purpose').value;
-        const bibleBase = document.getElementById('full-bible-base').value;
-        const introduction = document.getElementById('full-introduction').value;
-        const sermonQuestion = document.getElementById('full-sermon-question').value;
-        const proposition = document.getElementById('full-proposition').value;
-        const transitionPrayer = document.getElementById('full-transition-prayer').value;
-        const keyWord = document.getElementById('full-key-word').value;
-        const conclusionRecap = document.getElementById('full-conclusion-recap').value;
-        const conclusionApplication = document.getElementById('full-conclusion-application').value;
-        const conclusionInvitation = document.getElementById('full-conclusion-invitation').value;
-        const points = getPointsFromDOM('full');
-
-        const pointsHtml = points.map((p, i) => `
-            <div class="point">
-                <div class="point-title">${i + 1}. ${p.title || ''} ${p.verse_ref ? `(${p.verse_ref})` : ''}</div>
-                ${p.verse_text ? `<div class="verse-text">"${p.verse_text}"</div>` : ''}
-                ${p.development ? `<div class="point-body">${p.development}</div>` : ''}
-                ${p.transition ? `<div class="transition">— ${p.transition}</div>` : ''}
-            </div>
-        `).join('');
-
-        bodyHtml = `
-            ${theme ? `<div class="section"><span class="label">II. TEMA</span><p>${theme}</p></div>` : ''}
-            ${generalPurpose ? `<div class="section"><span class="label">III. PROPÓSITO GENERAL</span><p>${generalPurpose}</p></div>` : ''}
-            ${specificPurpose ? `<div class="section"><span class="label">IV. PROPÓSITO ESPECÍFICO</span><p>${specificPurpose}</p></div>` : ''}
-            ${bibleBase ? `<div class="section"><span class="label">V. BASE BÍBLICA</span><p>${bibleBase}</p></div>` : ''}
-            ${introduction ? `<div class="section"><span class="label">VI. INTRODUCCIÓN</span><p>${introduction}</p></div>` : ''}
-            ${sermonQuestion ? `<div class="section"><span class="label">VII. INTERROGANTE SERMONARIA</span><p>${sermonQuestion}</p></div>` : ''}
-            ${proposition ? `<div class="section"><span class="label">VIII. PROPOSICIÓN</span><p>${proposition}</p></div>` : ''}
-            ${transitionPrayer ? `<div class="section"><span class="label">IX. ORACIÓN DE TRANSICIÓN</span><p>${transitionPrayer}</p></div>` : ''}
-            ${keyWord ? `<div class="section"><span class="label">X. PALABRA CLAVE</span><p>${keyWord}</p></div>` : ''}
-            ${points.length > 0 ? `
-                <div class="section">
-                    <span class="label">XI. CONTENIDO</span>
-                    ${pointsHtml}
-                </div>
-            ` : ''}
-            ${(conclusionRecap || conclusionApplication || conclusionInvitation) ? `
-                <div class="section">
-                    <span class="label">XII. CONCLUSIÓN</span>
-                    ${conclusionRecap ? `<div class="conclusion-item"><span class="sublabel">A. Recapitulación</span><p>${conclusionRecap}</p></div>` : ''}
-                    ${conclusionApplication ? `<div class="conclusion-item"><span class="sublabel">B. Aplicación</span><p>${conclusionApplication}</p></div>` : ''}
-                    ${conclusionInvitation ? `<div class="conclusion-item"><span class="sublabel">C. Invitación</span><p>${conclusionInvitation}</p></div>` : ''}
-                </div>
-            ` : ''}
-        `;
-
-    } else if (type === 'simple') {
-        const bibleBase = document.getElementById('simple-bible-base').value;
-        const points = getPointsFromDOM('simple');
-
-        const pointsHtml = points.map((p, i) => `
-            <div class="point">
-                <div class="point-title">${i + 1}. ${p.title || ''} ${p.verse_ref ? `(${p.verse_ref})` : ''}</div>
-                ${p.verse_text ? `<div class="verse-text">"${p.verse_text}"</div>` : ''}
-                ${p.development ? `<div class="point-body">${p.development}</div>` : ''}
-                ${p.transition ? `<div class="transition">— ${p.transition}</div>` : ''}
-            </div>
-        `).join('');
-
-        bodyHtml = `
-            ${bibleBase ? `<div class="section"><span class="label">BASE BÍBLICA</span><p>${bibleBase}</p></div>` : ''}
-            ${points.length > 0 ? `
-                <div class="section">
-                    <span class="label">PUNTOS PRINCIPALES</span>
-                    ${pointsHtml}
-                </div>
-            ` : ''}
-        `;
-
-    } else {
-        const content = document.getElementById('free-content').value;
-        bodyHtml = `<div class="section"><p style="white-space: pre-wrap;">${content}</p></div>`;
-    }
-
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Georgia', serif; color: #222; font-size: 11pt; line-height: 1.6; }
-                
-                .doc-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 25px; }
-                .doc-header h1 { font-size: 18pt; font-weight: 900; margin-bottom: 5px; }
-                .doc-header .doc-type { font-size: 8pt; letter-spacing: 3px; text-transform: uppercase; color: #666; }
-                
-                .section { margin-bottom: 18px; }
-                .label { display: block; font-size: 7.5pt; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-bottom: 5px; border-left: 3px solid #333; padding-left: 8px; }
-                .sublabel { display: block; font-size: 8pt; font-weight: 700; color: #444; margin: 10px 0 4px 0; }
-                
-                .section p { font-size: 10.5pt; padding-left: 11px; }
-                
-                .point { margin: 12px 0; padding: 10px; border-left: 2px solid #ccc; padding-left: 12px; }
-                .point-title { font-weight: 700; font-size: 10.5pt; margin-bottom: 5px; }
-                .verse-text { font-style: italic; color: #444; margin: 5px 0; font-size: 10pt; }
-                .point-body { font-size: 10pt; margin: 5px 0; }
-                .transition { font-size: 9.5pt; color: #666; font-style: italic; margin-top: 8px; }
-                
-                .conclusion-item { margin-bottom: 10px; padding-left: 11px; }
-                
-                .doc-footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; }
-            </style>
-        </head>
-        <body>
-            <div class="doc-header">
-                <div class="doc-type">I. TÍTULO</div>
-                <h1>${title}</h1>
-            </div>
-            ${bodyHtml}
-            <div class="doc-footer">Biblia Master — ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
-        </body>
-        </html>
-    `;
-
-    try {
-        const result = await window.api.exportOutlinePdf({ html, title });
-        if (result.cancelled) return;
-
-        const btn = document.getElementById('btn-export-outline-pdf');
-        btn.innerText = '✅ Exportado';
-        setTimeout(() => { btn.innerText = '📄 Exportar PDF'; }, 2000);
-    } catch (err) {
-        console.error('Error al exportar PDF:', err);
-    }
-}
-
-    // Eventos de la pantalla
-    document.getElementById('btn-close-outlines').onclick = closeOutlinesScreen;
-    document.getElementById('btn-back-outlines').onclick = loadOutlinesList;
-    document.getElementById('btn-save-outline').onclick = saveCurrentOutline;
-
-    document.getElementById('btn-new-outline').onclick = () => {
-        showOutlinesView('type');
-    };
-
-    document.getElementById('btn-cancel-type').onclick = () => {
-        showOutlinesView('list');
-    };
-
-    document.querySelectorAll('.type-option').forEach(opt => {
-        opt.onclick = () => openOutlineEditor(opt.dataset.type);
-    });
-
-    document.getElementById('btn-add-point-full').onclick = () => {
-        const count = document.getElementById('points-list-full').querySelectorAll('.point-item').length;
-        addPointToDOM('full', count + 1);
-    };
-
-    document.getElementById('btn-add-point-simple').onclick = () => {
-        const count = document.getElementById('points-list-simple').querySelectorAll('.point-item').length;
-        addPointToDOM('simple', count + 1);
-    };
-
-    document.getElementById('btn-export-outline-pdf').onclick = exportOutlineToPdf;
-
-    // ============================================
-    // ✨ PANTALLA DE EXÉGESIS
-    // ============================================
-
-    let currentExegesisId = null;
-    
-    function openExegesisScreen() {
-        document.getElementById('exegesis-screen').classList.remove('hidden');
-        loadExegesisList();
-    }
-    
-    function closeExegesisScreen() {
-        document.getElementById('exegesis-screen').classList.add('hidden');
-        currentExegesisId = null;
-    }
-    
-    async function loadExegesisList() {
-        showExegesisView('list');
-        const grid = document.getElementById('exegesis-grid');
-        grid.innerHTML = '';
-    
-        const list = await window.api.getExegesisList();
-        if (!list || list.length === 0) return;
-    
-        list.forEach(e => {
-            const card = document.createElement('div');
-            card.classList.add('outline-card');
-            card.innerHTML = `
-                <div class="outline-card-type">📚 Análisis Exegético</div>
-                <div class="outline-card-title">${e.title || 'Sin título'}</div>
-                ${e.passage ? `<div style="font-size:0.8rem; color:var(--accent); font-weight:700;">${e.passage}</div>` : ''}
-                <div class="outline-card-date">${new Date(e.updated_at).toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
-                <div class="outline-card-actions">
-                    <button class="btn-small-action btn-edit-ex">✏️ Editar</button>
-                    <button class="btn-small-action btn-delete-ex">🗑️ Eliminar</button>
-                </div>
-            `;
-        
-            card.querySelector('.btn-edit-ex').onclick = (e) => { e.stopPropagation(); openExegesisEditor(card._id); };
-            card.querySelector('.btn-delete-ex').onclick = async (ev) => {
-                ev.stopPropagation();
-                if (confirm(`¿Eliminar "${e.title || 'Sin título'}"?`)) {
-                    await window.api.deleteExegesis(e.id);
-                    loadExegesisList();
-                }
-            };
-        
-            card._id = e.id;
-            card.onclick = () => openExegesisEditor(e.id);
-            grid.appendChild(card);
-        });
-    }
-    
-    function showExegesisView(view) {
-        document.getElementById('exegesis-list-view').classList.toggle('hidden', view !== 'list');
-        document.getElementById('exegesis-editor-view').classList.toggle('hidden', view !== 'editor');
-    }
-    
-    const exegesisFields = [
-        'delimitacion', 'proposito', 'tesis',
-        'autoria', 'fecha-lugar', 'proposito-original',
-        'genero', 'relacion', 'estructura',
-        'analisis-palabras', 'gramatica', 'traduccion',
-        'ensenanza-original', 'mensaje-central',
-        'relevancia', 'ejemplos',
-        'resumen', 'reflexion'
-    ];
-    
-    function clearExegesisEditor() {
-        document.getElementById('exegesis-title-input').value = '';
-        document.getElementById('exegesis-passage-input').value = '';
-        exegesisFields.forEach(f => {
-            const el = document.getElementById(`ex-${f}`);
-            if (el) el.value = '';
-        });
-    }
-    
-    async function openExegesisEditor(id = null) {
-        currentExegesisId = id;
-        clearExegesisEditor();
-    
-        if (id) {
-            const data = await window.api.getExegesisById(id);
-            document.getElementById('exegesis-title-input').value = data.title || '';
-            document.getElementById('exegesis-passage-input').value = data.passage || '';
-            document.getElementById('ex-delimitacion').value = data.delimitacion || '';
-            document.getElementById('ex-proposito').value = data.proposito || '';
-            document.getElementById('ex-tesis').value = data.tesis || '';
-            document.getElementById('ex-autoria').value = data.autoria || '';
-            document.getElementById('ex-fecha-lugar').value = data.fecha_lugar || '';
-            document.getElementById('ex-proposito-original').value = data.proposito_original || '';
-            document.getElementById('ex-genero').value = data.genero || '';
-            document.getElementById('ex-relacion').value = data.relacion || '';
-            document.getElementById('ex-estructura').value = data.estructura || '';
-            document.getElementById('ex-analisis-palabras').value = data.analisis_palabras || '';
-            document.getElementById('ex-gramatica').value = data.gramatica || '';
-            document.getElementById('ex-traduccion').value = data.traduccion || '';
-            document.getElementById('ex-ensenanza-original').value = data.ensenanza_original || '';
-            document.getElementById('ex-mensaje-central').value = data.mensaje_central || '';
-            document.getElementById('ex-relevancia').value = data.relevancia || '';
-            document.getElementById('ex-ejemplos').value = data.ejemplos || '';
-            document.getElementById('ex-resumen').value = data.resumen || '';
-            document.getElementById('ex-reflexion').value = data.reflexion || '';
-        }
-    
-        showExegesisView('editor');
-    }
-    
-    function getExegesisData() {
-        return {
-            title: document.getElementById('exegesis-title-input').value.trim() || 'Sin título',
-            passage: document.getElementById('exegesis-passage-input').value.trim(),
-            delimitacion: document.getElementById('ex-delimitacion').value,
-            proposito: document.getElementById('ex-proposito').value,
-            tesis: document.getElementById('ex-tesis').value,
-            autoria: document.getElementById('ex-autoria').value,
-            fecha_lugar: document.getElementById('ex-fecha-lugar').value,
-            proposito_original: document.getElementById('ex-proposito-original').value,
-            genero: document.getElementById('ex-genero').value,
-            relacion: document.getElementById('ex-relacion').value,
-            estructura: document.getElementById('ex-estructura').value,
-            analisis_palabras: document.getElementById('ex-analisis-palabras').value,
-            gramatica: document.getElementById('ex-gramatica').value,
-            traduccion: document.getElementById('ex-traduccion').value,
-            ensenanza_original: document.getElementById('ex-ensenanza-original').value,
-            mensaje_central: document.getElementById('ex-mensaje-central').value,
-            relevancia: document.getElementById('ex-relevancia').value,
-            ejemplos: document.getElementById('ex-ejemplos').value,
-            resumen: document.getElementById('ex-resumen').value,
-            reflexion: document.getElementById('ex-reflexion').value,
-        };
-    }
-    
-    async function saveCurrentExegesis() {
-        const data = getExegesisData();
-    
-        try {
-            if (currentExegesisId) {
-                data.id = currentExegesisId;
-                await window.api.updateExegesis(data);
-            } else {
-                const result = await window.api.saveExegesis(data);
-                currentExegesisId = result.id;
-            }
-        
-            const btn = document.getElementById('btn-save-exegesis');
-            btn.innerText = '✅ Guardado';
-            setTimeout(() => { btn.innerText = 'Guardar'; }, 1500);
-        
-        } catch (err) {
-            console.error('Error al guardar exégesis:', err);
-        }
-    }
-    
-    async function exportExegesisToPdf() {
-        const data = getExegesisData();
-    
-        const section = (num, title, fields) => {
-            const content = fields.filter(f => f.value).map(f => `
-                <div class="field">
-                    <div class="field-label">${f.label}</div>
-                    <div class="field-content">${f.value.replace(/\n/g, '<br>')}</div>
-                </div>
-            `).join('');
-            if (!content) return '';
-            return `
-                <div class="section">
-                    <div class="section-title"><span class="section-num">${num}</span>${title}</div>
-                    ${content}
-                </div>
-            `;
-        };
-    
-        const bodyHtml = [
-            section(1, 'Introducción y Delimitación', [
-                { label: 'Delimitación del texto', value: data.delimitacion },
-                { label: 'Propósito', value: data.proposito },
-                { label: 'Declaración de Tesis', value: data.tesis },
-            ]),
-            section(2, 'Contexto Histórico y Cultural', [
-                { label: 'Autoría', value: data.autoria },
-                { label: 'Fecha y Lugar', value: data.fecha_lugar },
-                { label: 'Propósito Original', value: data.proposito_original },
-            ]),
-            section(3, 'Contexto Literario', [
-                { label: 'Género', value: data.genero },
-                { label: 'Relación con el libro', value: data.relacion },
-                { label: 'Estructura', value: data.estructura },
-            ]),
-            section(4, 'Análisis Gramatical y Léxico', [
-                { label: 'Análisis de Palabras', value: data.analisis_palabras },
-                { label: 'Gramática', value: data.gramatica },
-                { label: 'Comparación de Traducciones', value: data.traduccion },
-            ]),
-            section(5, 'Significado Teológico', [
-                { label: 'Enseñanza Original', value: data.ensenanza_original },
-                { label: 'Mensaje Central', value: data.mensaje_central },
-            ]),
-            section(6, 'Aplicación Contemporánea', [
-                { label: 'Relevancia Actual', value: data.relevancia },
-                { label: 'Ejemplos Prácticos', value: data.ejemplos },
-            ]),
-            section(7, 'Conclusión', [
-                { label: 'Resumen', value: data.resumen },
-                { label: 'Reflexión Final', value: data.reflexion },
-            ]),
-        ].join('');
-    
-        const html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Georgia', serif; color: #222; font-size: 11pt; line-height: 1.7; }
-    
-                    .doc-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 30px; }
-                    .doc-header .doc-type { font-size: 8pt; letter-spacing: 3px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
-                    .doc-header h1 { font-size: 20pt; font-weight: 900; margin-bottom: 5px; }
-                    .doc-header .passage { font-size: 11pt; color: #555; font-style: italic; }
-    
-                    .section { margin-bottom: 25px; page-break-inside: avoid; }
-                    .section-title { display: flex; align-items: center; gap: 10px; font-size: 12pt; font-weight: 800; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
-                    .section-num { width: 22px; height: 22px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 900; flex-shrink: 0; }
-    
-                    .field { margin-bottom: 12px; padding-left: 10px; }
-                    .field-label { font-size: 8pt; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #555; margin-bottom: 4px; }
-                    .field-content { font-size: 10.5pt; color: #222; }
-    
-                    .doc-footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; }
-                </style>
-            </head>
-            <body>
-                <div class="doc-header">
-                    <div class="doc-type">Análisis Exegético</div>
-                    <h1>${data.title}</h1>
-                    ${data.passage ? `<div class="passage">${data.passage}</div>` : ''}
-                </div>
-                ${bodyHtml}
-                <div class="doc-footer">Biblia Master — ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
-            </body>
-            </html>
-        `;
-    
-        try {
-            const result = await window.api.exportOutlinePdf({ html, title: data.title });
-            if (result.cancelled) return;
-            const btn = document.getElementById('btn-export-exegesis-pdf');
-            btn.innerText = '✅ Exportado';
-            setTimeout(() => { btn.innerText = '📄 Exportar PDF'; }, 2000);
-        } catch (err) {
-            console.error('Error al exportar exégesis PDF:', err);
-        }
-    }
-
-    // Eventos
-    document.getElementById('btn-close-exegesis').onclick = closeExegesisScreen;
-    document.getElementById('btn-back-exegesis').onclick = loadExegesisList;
-    document.getElementById('btn-save-exegesis').onclick = saveCurrentExegesis;
-    document.getElementById('btn-export-exegesis-pdf').onclick = exportExegesisToPdf;
-    document.getElementById('btn-new-exegesis').onclick = () => openExegesisEditor();
 
 window.addEventListener('DOMContentLoaded', init);
