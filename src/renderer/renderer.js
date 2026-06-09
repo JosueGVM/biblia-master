@@ -489,6 +489,8 @@ function setupStaticEventListeners() {
 
     // Bosquejos
     document.getElementById('btn-open-outlines').onclick = () => openOutlinesScreen();
+
+    document.getElementById('btn-open-exegesis').onclick = () => openExegesisScreen();
 }
 
 // --- FUNCIONES DE SOPORTE ---
@@ -1224,35 +1226,35 @@ function setupTooltips() {
         tooltip.style.top = y + 'px';
     }
 }
-    
+
     // ============================================
     // ✨ PANTALLA DE BOSQUEJOS
     // ============================================
-    
+
     let currentOutlineId = null;
     let currentOutlineType = null;
-    
+
     function openOutlinesScreen() {
         document.getElementById('outlines-screen').classList.remove('hidden');
         loadOutlinesList();
     }
-    
+
     function closeOutlinesScreen() {
         document.getElementById('outlines-screen').classList.add('hidden');
         currentOutlineId = null;
         currentOutlineType = null;
     }
-    
+
     async function loadOutlinesList() {
         showOutlinesView('list');
         const grid = document.getElementById('outlines-grid');
         grid.innerHTML = "";
-    
+
         const outlines = await window.api.getOutlines();
         if (!outlines || outlines.length === 0) return;
-    
+
         const typeLabels = { full: '📖 Homilético', simple: '📝 Sencillo', free: '✏️ Libre' };
-    
+
         outlines.forEach(o => {
             const card = document.createElement('div');
             card.classList.add('outline-card');
@@ -1265,12 +1267,12 @@ function setupTooltips() {
                     <button class="btn-small-action btn-delete-outline">🗑️ Eliminar</button>
                 </div>
             `;
-        
+
             card.querySelector('.btn-edit-outline').onclick = (e) => {
                 e.stopPropagation();
                 openOutlineEditor(o.type, o.id);
             };
-        
+
             card.querySelector('.btn-delete-outline').onclick = async (e) => {
                 e.stopPropagation();
                 if (confirm(`¿Eliminar "${o.title || 'Sin título'}"?`)) {
@@ -1278,44 +1280,44 @@ function setupTooltips() {
                     loadOutlinesList();
                 }
             };
-        
+
             card.onclick = () => openOutlineEditor(o.type, o.id);
             grid.appendChild(card);
         });
     }
-    
+
     function showOutlinesView(view) {
         document.getElementById('outlines-list-view').classList.toggle('hidden', view !== 'list');
         document.getElementById('outlines-type-selector').classList.toggle('hidden', view !== 'type');
         document.getElementById('outlines-editor-view').classList.toggle('hidden', view !== 'editor');
     }
-    
+
     async function openOutlineEditor(type, id = null) {
         currentOutlineType = type;
         currentOutlineId = id;
-    
+
         // Ocultar todos los editores
         document.querySelectorAll('.editor-form').forEach(f => f.classList.add('hidden'));
         document.getElementById(`editor-${type}`).classList.remove('hidden');
-    
+
         // Limpiar campos
         clearEditorFields(type);
-    
+
         if (id) {
             // Cargar datos existentes
             let data;
             if (type === 'full') data = await window.api.getFullOutline(id);
             else if (type === 'simple') data = await window.api.getSimpleOutline(id);
             else data = await window.api.getFreeOutline(id);
-        
+
             document.getElementById('outline-title-input').value = data.title || '';
             fillEditorFields(type, data);
             if (type !== 'free') renderPoints(type, data.points || []);
         }
-    
+
         showOutlinesView('editor');
     }
-    
+
     function clearEditorFields(type) {
         document.getElementById('outline-title-input').value = '';
         if (type === 'full') {
@@ -1334,7 +1336,7 @@ function setupTooltips() {
             document.getElementById('free-content').value = '';
         }
     }
-    
+
     function fillEditorFields(type, data) {
         if (type === 'full') {
             document.getElementById('full-theme').value = data.theme || '';
@@ -1355,13 +1357,13 @@ function setupTooltips() {
             document.getElementById('free-content').value = data.content || '';
         }
     }
-    
+
     function renderPoints(type, points) {
         const container = document.getElementById(`points-list-${type}`);
         container.innerHTML = '';
         points.forEach((p, i) => addPointToDOM(type, i + 1, p));
     }
-    
+
     function addPointToDOM(type, num, data = {}) {
         const container = document.getElementById(`points-list-${type}`);
         const div = document.createElement('div');
@@ -1379,7 +1381,7 @@ function setupTooltips() {
                 <button class="btn-delete-point">🗑️ Eliminar punto</button>
             </div>
         `;
-    
+
         div.querySelector('.btn-delete-point').onclick = () => {
             div.remove();
             // Renumerar
@@ -1387,10 +1389,10 @@ function setupTooltips() {
                 el.innerText = `Punto ${i + 1}`;
             });
         };
-    
+
         container.appendChild(div);
     }
-    
+
     function getPointsFromDOM(type) {
         const container = document.getElementById(`points-list-${type}`);
         return [...container.querySelectorAll('.point-item')].map(item => ({
@@ -1401,13 +1403,13 @@ function setupTooltips() {
             transition: item.querySelector('.point-transition').value,
         }));
     }
-    
+
     async function saveCurrentOutline() {
         const title = document.getElementById('outline-title-input').value.trim() || 'Sin título';
         const type = currentOutlineType;
-    
+
         let data = { title };
-    
+
         if (type === 'full') {
             data = {
                 ...data,
@@ -1429,7 +1431,7 @@ function setupTooltips() {
         } else {
             data.content = document.getElementById('free-content').value;
         }
-    
+
         try {
             if (currentOutlineId) {
                 data.id = currentOutlineId;
@@ -1443,48 +1445,450 @@ function setupTooltips() {
                 else result = await window.api.saveFreeOutline(data);
                 currentOutlineId = result.id;
             }
-        
+
             // Guardar puntos si aplica
             if (type !== 'free') {
                 const points = getPointsFromDOM(type);
                 await window.api.saveOutlinePoints({ outlineId: currentOutlineId, points });
             }
-        
+
             // Feedback
             const btn = document.getElementById('btn-save-outline');
             btn.innerText = '✅ Guardado';
             setTimeout(() => { btn.innerText = 'Guardar'; }, 1500);
-        
+
         } catch (err) {
             console.error('Error al guardar bosquejo:', err);
         }
     }
-    
+
+    async function exportOutlineToPdf() {
+    const type = currentOutlineType;
+    const title = document.getElementById('outline-title-input').value || 'Sin título';
+
+    let bodyHtml = '';
+
+    if (type === 'full') {
+        const theme = document.getElementById('full-theme').value;
+        const generalPurpose = document.getElementById('full-general-purpose').value;
+        const specificPurpose = document.getElementById('full-specific-purpose').value;
+        const bibleBase = document.getElementById('full-bible-base').value;
+        const introduction = document.getElementById('full-introduction').value;
+        const sermonQuestion = document.getElementById('full-sermon-question').value;
+        const proposition = document.getElementById('full-proposition').value;
+        const transitionPrayer = document.getElementById('full-transition-prayer').value;
+        const keyWord = document.getElementById('full-key-word').value;
+        const conclusionRecap = document.getElementById('full-conclusion-recap').value;
+        const conclusionApplication = document.getElementById('full-conclusion-application').value;
+        const conclusionInvitation = document.getElementById('full-conclusion-invitation').value;
+        const points = getPointsFromDOM('full');
+
+        const pointsHtml = points.map((p, i) => `
+            <div class="point">
+                <div class="point-title">${i + 1}. ${p.title || ''} ${p.verse_ref ? `(${p.verse_ref})` : ''}</div>
+                ${p.verse_text ? `<div class="verse-text">"${p.verse_text}"</div>` : ''}
+                ${p.development ? `<div class="point-body">${p.development}</div>` : ''}
+                ${p.transition ? `<div class="transition">— ${p.transition}</div>` : ''}
+            </div>
+        `).join('');
+
+        bodyHtml = `
+            ${theme ? `<div class="section"><span class="label">II. TEMA</span><p>${theme}</p></div>` : ''}
+            ${generalPurpose ? `<div class="section"><span class="label">III. PROPÓSITO GENERAL</span><p>${generalPurpose}</p></div>` : ''}
+            ${specificPurpose ? `<div class="section"><span class="label">IV. PROPÓSITO ESPECÍFICO</span><p>${specificPurpose}</p></div>` : ''}
+            ${bibleBase ? `<div class="section"><span class="label">V. BASE BÍBLICA</span><p>${bibleBase}</p></div>` : ''}
+            ${introduction ? `<div class="section"><span class="label">VI. INTRODUCCIÓN</span><p>${introduction}</p></div>` : ''}
+            ${sermonQuestion ? `<div class="section"><span class="label">VII. INTERROGANTE SERMONARIA</span><p>${sermonQuestion}</p></div>` : ''}
+            ${proposition ? `<div class="section"><span class="label">VIII. PROPOSICIÓN</span><p>${proposition}</p></div>` : ''}
+            ${transitionPrayer ? `<div class="section"><span class="label">IX. ORACIÓN DE TRANSICIÓN</span><p>${transitionPrayer}</p></div>` : ''}
+            ${keyWord ? `<div class="section"><span class="label">X. PALABRA CLAVE</span><p>${keyWord}</p></div>` : ''}
+            ${points.length > 0 ? `
+                <div class="section">
+                    <span class="label">XI. CONTENIDO</span>
+                    ${pointsHtml}
+                </div>
+            ` : ''}
+            ${(conclusionRecap || conclusionApplication || conclusionInvitation) ? `
+                <div class="section">
+                    <span class="label">XII. CONCLUSIÓN</span>
+                    ${conclusionRecap ? `<div class="conclusion-item"><span class="sublabel">A. Recapitulación</span><p>${conclusionRecap}</p></div>` : ''}
+                    ${conclusionApplication ? `<div class="conclusion-item"><span class="sublabel">B. Aplicación</span><p>${conclusionApplication}</p></div>` : ''}
+                    ${conclusionInvitation ? `<div class="conclusion-item"><span class="sublabel">C. Invitación</span><p>${conclusionInvitation}</p></div>` : ''}
+                </div>
+            ` : ''}
+        `;
+
+    } else if (type === 'simple') {
+        const bibleBase = document.getElementById('simple-bible-base').value;
+        const points = getPointsFromDOM('simple');
+
+        const pointsHtml = points.map((p, i) => `
+            <div class="point">
+                <div class="point-title">${i + 1}. ${p.title || ''} ${p.verse_ref ? `(${p.verse_ref})` : ''}</div>
+                ${p.verse_text ? `<div class="verse-text">"${p.verse_text}"</div>` : ''}
+                ${p.development ? `<div class="point-body">${p.development}</div>` : ''}
+                ${p.transition ? `<div class="transition">— ${p.transition}</div>` : ''}
+            </div>
+        `).join('');
+
+        bodyHtml = `
+            ${bibleBase ? `<div class="section"><span class="label">BASE BÍBLICA</span><p>${bibleBase}</p></div>` : ''}
+            ${points.length > 0 ? `
+                <div class="section">
+                    <span class="label">PUNTOS PRINCIPALES</span>
+                    ${pointsHtml}
+                </div>
+            ` : ''}
+        `;
+
+    } else {
+        const content = document.getElementById('free-content').value;
+        bodyHtml = `<div class="section"><p style="white-space: pre-wrap;">${content}</p></div>`;
+    }
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Georgia', serif; color: #222; font-size: 11pt; line-height: 1.6; }
+                
+                .doc-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 25px; }
+                .doc-header h1 { font-size: 18pt; font-weight: 900; margin-bottom: 5px; }
+                .doc-header .doc-type { font-size: 8pt; letter-spacing: 3px; text-transform: uppercase; color: #666; }
+                
+                .section { margin-bottom: 18px; }
+                .label { display: block; font-size: 7.5pt; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-bottom: 5px; border-left: 3px solid #333; padding-left: 8px; }
+                .sublabel { display: block; font-size: 8pt; font-weight: 700; color: #444; margin: 10px 0 4px 0; }
+                
+                .section p { font-size: 10.5pt; padding-left: 11px; }
+                
+                .point { margin: 12px 0; padding: 10px; border-left: 2px solid #ccc; padding-left: 12px; }
+                .point-title { font-weight: 700; font-size: 10.5pt; margin-bottom: 5px; }
+                .verse-text { font-style: italic; color: #444; margin: 5px 0; font-size: 10pt; }
+                .point-body { font-size: 10pt; margin: 5px 0; }
+                .transition { font-size: 9.5pt; color: #666; font-style: italic; margin-top: 8px; }
+                
+                .conclusion-item { margin-bottom: 10px; padding-left: 11px; }
+                
+                .doc-footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class="doc-header">
+                <div class="doc-type">I. TÍTULO</div>
+                <h1>${title}</h1>
+            </div>
+            ${bodyHtml}
+            <div class="doc-footer">Biblia Master — ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
+        </body>
+        </html>
+    `;
+
+    try {
+        const result = await window.api.exportOutlinePdf({ html, title });
+        if (result.cancelled) return;
+
+        const btn = document.getElementById('btn-export-outline-pdf');
+        btn.innerText = '✅ Exportado';
+        setTimeout(() => { btn.innerText = '📄 Exportar PDF'; }, 2000);
+    } catch (err) {
+        console.error('Error al exportar PDF:', err);
+    }
+}
+
     // Eventos de la pantalla
     document.getElementById('btn-close-outlines').onclick = closeOutlinesScreen;
     document.getElementById('btn-back-outlines').onclick = loadOutlinesList;
     document.getElementById('btn-save-outline').onclick = saveCurrentOutline;
-    
+
     document.getElementById('btn-new-outline').onclick = () => {
         showOutlinesView('type');
     };
-    
+
     document.getElementById('btn-cancel-type').onclick = () => {
         showOutlinesView('list');
     };
-    
+
     document.querySelectorAll('.type-option').forEach(opt => {
         opt.onclick = () => openOutlineEditor(opt.dataset.type);
     });
-    
+
     document.getElementById('btn-add-point-full').onclick = () => {
         const count = document.getElementById('points-list-full').querySelectorAll('.point-item').length;
         addPointToDOM('full', count + 1);
     };
-    
+
     document.getElementById('btn-add-point-simple').onclick = () => {
         const count = document.getElementById('points-list-simple').querySelectorAll('.point-item').length;
         addPointToDOM('simple', count + 1);
     };
+
+    document.getElementById('btn-export-outline-pdf').onclick = exportOutlineToPdf;
+
+    // ============================================
+    // ✨ PANTALLA DE EXÉGESIS
+    // ============================================
+
+    let currentExegesisId = null;
+    
+    function openExegesisScreen() {
+        document.getElementById('exegesis-screen').classList.remove('hidden');
+        loadExegesisList();
+    }
+    
+    function closeExegesisScreen() {
+        document.getElementById('exegesis-screen').classList.add('hidden');
+        currentExegesisId = null;
+    }
+    
+    async function loadExegesisList() {
+        showExegesisView('list');
+        const grid = document.getElementById('exegesis-grid');
+        grid.innerHTML = '';
+    
+        const list = await window.api.getExegesisList();
+        if (!list || list.length === 0) return;
+    
+        list.forEach(e => {
+            const card = document.createElement('div');
+            card.classList.add('outline-card');
+            card.innerHTML = `
+                <div class="outline-card-type">📚 Análisis Exegético</div>
+                <div class="outline-card-title">${e.title || 'Sin título'}</div>
+                ${e.passage ? `<div style="font-size:0.8rem; color:var(--accent); font-weight:700;">${e.passage}</div>` : ''}
+                <div class="outline-card-date">${new Date(e.updated_at).toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
+                <div class="outline-card-actions">
+                    <button class="btn-small-action btn-edit-ex">✏️ Editar</button>
+                    <button class="btn-small-action btn-delete-ex">🗑️ Eliminar</button>
+                </div>
+            `;
+        
+            card.querySelector('.btn-edit-ex').onclick = (e) => { e.stopPropagation(); openExegesisEditor(card._id); };
+            card.querySelector('.btn-delete-ex').onclick = async (ev) => {
+                ev.stopPropagation();
+                if (confirm(`¿Eliminar "${e.title || 'Sin título'}"?`)) {
+                    await window.api.deleteExegesis(e.id);
+                    loadExegesisList();
+                }
+            };
+        
+            card._id = e.id;
+            card.onclick = () => openExegesisEditor(e.id);
+            grid.appendChild(card);
+        });
+    }
+    
+    function showExegesisView(view) {
+        document.getElementById('exegesis-list-view').classList.toggle('hidden', view !== 'list');
+        document.getElementById('exegesis-editor-view').classList.toggle('hidden', view !== 'editor');
+    }
+    
+    const exegesisFields = [
+        'delimitacion', 'proposito', 'tesis',
+        'autoria', 'fecha-lugar', 'proposito-original',
+        'genero', 'relacion', 'estructura',
+        'analisis-palabras', 'gramatica', 'traduccion',
+        'ensenanza-original', 'mensaje-central',
+        'relevancia', 'ejemplos',
+        'resumen', 'reflexion'
+    ];
+    
+    function clearExegesisEditor() {
+        document.getElementById('exegesis-title-input').value = '';
+        document.getElementById('exegesis-passage-input').value = '';
+        exegesisFields.forEach(f => {
+            const el = document.getElementById(`ex-${f}`);
+            if (el) el.value = '';
+        });
+    }
+    
+    async function openExegesisEditor(id = null) {
+        currentExegesisId = id;
+        clearExegesisEditor();
+    
+        if (id) {
+            const data = await window.api.getExegesisById(id);
+            document.getElementById('exegesis-title-input').value = data.title || '';
+            document.getElementById('exegesis-passage-input').value = data.passage || '';
+            document.getElementById('ex-delimitacion').value = data.delimitacion || '';
+            document.getElementById('ex-proposito').value = data.proposito || '';
+            document.getElementById('ex-tesis').value = data.tesis || '';
+            document.getElementById('ex-autoria').value = data.autoria || '';
+            document.getElementById('ex-fecha-lugar').value = data.fecha_lugar || '';
+            document.getElementById('ex-proposito-original').value = data.proposito_original || '';
+            document.getElementById('ex-genero').value = data.genero || '';
+            document.getElementById('ex-relacion').value = data.relacion || '';
+            document.getElementById('ex-estructura').value = data.estructura || '';
+            document.getElementById('ex-analisis-palabras').value = data.analisis_palabras || '';
+            document.getElementById('ex-gramatica').value = data.gramatica || '';
+            document.getElementById('ex-traduccion').value = data.traduccion || '';
+            document.getElementById('ex-ensenanza-original').value = data.ensenanza_original || '';
+            document.getElementById('ex-mensaje-central').value = data.mensaje_central || '';
+            document.getElementById('ex-relevancia').value = data.relevancia || '';
+            document.getElementById('ex-ejemplos').value = data.ejemplos || '';
+            document.getElementById('ex-resumen').value = data.resumen || '';
+            document.getElementById('ex-reflexion').value = data.reflexion || '';
+        }
+    
+        showExegesisView('editor');
+    }
+    
+    function getExegesisData() {
+        return {
+            title: document.getElementById('exegesis-title-input').value.trim() || 'Sin título',
+            passage: document.getElementById('exegesis-passage-input').value.trim(),
+            delimitacion: document.getElementById('ex-delimitacion').value,
+            proposito: document.getElementById('ex-proposito').value,
+            tesis: document.getElementById('ex-tesis').value,
+            autoria: document.getElementById('ex-autoria').value,
+            fecha_lugar: document.getElementById('ex-fecha-lugar').value,
+            proposito_original: document.getElementById('ex-proposito-original').value,
+            genero: document.getElementById('ex-genero').value,
+            relacion: document.getElementById('ex-relacion').value,
+            estructura: document.getElementById('ex-estructura').value,
+            analisis_palabras: document.getElementById('ex-analisis-palabras').value,
+            gramatica: document.getElementById('ex-gramatica').value,
+            traduccion: document.getElementById('ex-traduccion').value,
+            ensenanza_original: document.getElementById('ex-ensenanza-original').value,
+            mensaje_central: document.getElementById('ex-mensaje-central').value,
+            relevancia: document.getElementById('ex-relevancia').value,
+            ejemplos: document.getElementById('ex-ejemplos').value,
+            resumen: document.getElementById('ex-resumen').value,
+            reflexion: document.getElementById('ex-reflexion').value,
+        };
+    }
+    
+    async function saveCurrentExegesis() {
+        const data = getExegesisData();
+    
+        try {
+            if (currentExegesisId) {
+                data.id = currentExegesisId;
+                await window.api.updateExegesis(data);
+            } else {
+                const result = await window.api.saveExegesis(data);
+                currentExegesisId = result.id;
+            }
+        
+            const btn = document.getElementById('btn-save-exegesis');
+            btn.innerText = '✅ Guardado';
+            setTimeout(() => { btn.innerText = 'Guardar'; }, 1500);
+        
+        } catch (err) {
+            console.error('Error al guardar exégesis:', err);
+        }
+    }
+    
+    async function exportExegesisToPdf() {
+        const data = getExegesisData();
+    
+        const section = (num, title, fields) => {
+            const content = fields.filter(f => f.value).map(f => `
+                <div class="field">
+                    <div class="field-label">${f.label}</div>
+                    <div class="field-content">${f.value.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+            if (!content) return '';
+            return `
+                <div class="section">
+                    <div class="section-title"><span class="section-num">${num}</span>${title}</div>
+                    ${content}
+                </div>
+            `;
+        };
+    
+        const bodyHtml = [
+            section(1, 'Introducción y Delimitación', [
+                { label: 'Delimitación del texto', value: data.delimitacion },
+                { label: 'Propósito', value: data.proposito },
+                { label: 'Declaración de Tesis', value: data.tesis },
+            ]),
+            section(2, 'Contexto Histórico y Cultural', [
+                { label: 'Autoría', value: data.autoria },
+                { label: 'Fecha y Lugar', value: data.fecha_lugar },
+                { label: 'Propósito Original', value: data.proposito_original },
+            ]),
+            section(3, 'Contexto Literario', [
+                { label: 'Género', value: data.genero },
+                { label: 'Relación con el libro', value: data.relacion },
+                { label: 'Estructura', value: data.estructura },
+            ]),
+            section(4, 'Análisis Gramatical y Léxico', [
+                { label: 'Análisis de Palabras', value: data.analisis_palabras },
+                { label: 'Gramática', value: data.gramatica },
+                { label: 'Comparación de Traducciones', value: data.traduccion },
+            ]),
+            section(5, 'Significado Teológico', [
+                { label: 'Enseñanza Original', value: data.ensenanza_original },
+                { label: 'Mensaje Central', value: data.mensaje_central },
+            ]),
+            section(6, 'Aplicación Contemporánea', [
+                { label: 'Relevancia Actual', value: data.relevancia },
+                { label: 'Ejemplos Prácticos', value: data.ejemplos },
+            ]),
+            section(7, 'Conclusión', [
+                { label: 'Resumen', value: data.resumen },
+                { label: 'Reflexión Final', value: data.reflexion },
+            ]),
+        ].join('');
+    
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Georgia', serif; color: #222; font-size: 11pt; line-height: 1.7; }
+    
+                    .doc-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 30px; }
+                    .doc-header .doc-type { font-size: 8pt; letter-spacing: 3px; text-transform: uppercase; color: #666; margin-bottom: 6px; }
+                    .doc-header h1 { font-size: 20pt; font-weight: 900; margin-bottom: 5px; }
+                    .doc-header .passage { font-size: 11pt; color: #555; font-style: italic; }
+    
+                    .section { margin-bottom: 25px; page-break-inside: avoid; }
+                    .section-title { display: flex; align-items: center; gap: 10px; font-size: 12pt; font-weight: 800; margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+                    .section-num { width: 22px; height: 22px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 900; flex-shrink: 0; }
+    
+                    .field { margin-bottom: 12px; padding-left: 10px; }
+                    .field-label { font-size: 8pt; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: #555; margin-bottom: 4px; }
+                    .field-content { font-size: 10.5pt; color: #222; }
+    
+                    .doc-footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 8pt; color: #999; }
+                </style>
+            </head>
+            <body>
+                <div class="doc-header">
+                    <div class="doc-type">Análisis Exegético</div>
+                    <h1>${data.title}</h1>
+                    ${data.passage ? `<div class="passage">${data.passage}</div>` : ''}
+                </div>
+                ${bodyHtml}
+                <div class="doc-footer">Biblia Master — ${new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })}</div>
+            </body>
+            </html>
+        `;
+    
+        try {
+            const result = await window.api.exportOutlinePdf({ html, title: data.title });
+            if (result.cancelled) return;
+            const btn = document.getElementById('btn-export-exegesis-pdf');
+            btn.innerText = '✅ Exportado';
+            setTimeout(() => { btn.innerText = '📄 Exportar PDF'; }, 2000);
+        } catch (err) {
+            console.error('Error al exportar exégesis PDF:', err);
+        }
+    }
+
+    // Eventos
+    document.getElementById('btn-close-exegesis').onclick = closeExegesisScreen;
+    document.getElementById('btn-back-exegesis').onclick = loadExegesisList;
+    document.getElementById('btn-save-exegesis').onclick = saveCurrentExegesis;
+    document.getElementById('btn-export-exegesis-pdf').onclick = exportExegesisToPdf;
+    document.getElementById('btn-new-exegesis').onclick = () => openExegesisEditor();
 
 window.addEventListener('DOMContentLoaded', init);

@@ -33,36 +33,47 @@
                 
                     <!-- BOTONES IZQUIERDA (normales) -->
                     <div class="header-side-controls" id="header-left-controls">
+                            <!-- BOTÓN DE BUSCADOR -->
                         <button id="btn-open-search" class="minimal-icon-btn" title="Buscar">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <path d="m21 21-4.35-4.35"></path>
                             </svg>
                         </button>
+                            <!-- BOTÓN DE FAVORITOS -->
                         <button id="btn-open-favorites" class="minimal-icon-btn" title="Favoritos">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="star-icon">
                                 <polygon points="12 2 15 10 23 10 17 15 19 23 12 18 5 23 7 15 1 10 9 10"></polygon>
                             </svg>
                         </button>
+                            <!-- BOTÓN DE HIGHLIGHTS -->
                         <button id="btn-open-highlights" class="minimal-icon-btn" title="Mis Highlights">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 20h9"></path>
                                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                             </svg>
                         </button>
+                            <!-- BOTÓN DE NOTAS -->
                         <button id="btn-open-notes" class="minimal-icon-btn" title="Notas">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
                         </button>
-                        <!-- BOTÓN DE BOSQUEJOS -->
+                            <!-- BOTÓN DE BOSQUEJOS -->
                         <button id="btn-open-outlines" class="minimal-icon-btn" title="Bosquejos">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="3" y1="5" x2="19" y2="5"></line>
                                 <line x1="3" y1="10" x2="15" y2="10"></line>
                                 <line x1="3" y1="15" x2="19" y2="15"></line>
                                 <line x1="3" y1="20" x2="12" y2="20"></line>
+                            </svg>
+                        </button>
+                            <!-- BOTÓN DE EXÉGESIS -->
+                        <button id="btn-open-exegesis" class="minimal-icon-btn" title="Análisis Exegéticos">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                             </svg>
                         </button>
                     </div>
@@ -125,13 +136,6 @@
                                 </svg>
                                 Notas
                             </button>
-                            <button class="hamburger-item" data-target="settings-btn">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                </svg>
-                                Configuración
-                            </button>
                             <button class="hamburger-item" data-target="btn-open-outlines">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="3" y1="5" x2="19" y2="5"></line>
@@ -140,6 +144,20 @@
                                     <line x1="3" y1="20" x2="12" y2="20"></line>
                                 </svg>
                                 Bosquejos
+                            </button>
+                            <button class="hamburger-item" data-target="btn-open-exegesis">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                </svg>
+                                Exégesis
+                            </button>
+                            <button class="hamburger-item" data-target="settings-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                                Configuración
                             </button>
                         </div>
                     </div>
@@ -289,7 +307,7 @@
 
     <!-- ✨ PANTALLA DE BOSQUEJOS -->
     <div id="outlines-screen" class="fullscreen-overlay hidden">
-    
+
         <!-- VISTA: LISTA DE BOSQUEJOS -->
         <div id="outlines-list-view">
             <div id="outlines-list-header">
@@ -301,7 +319,7 @@
             </div>
             <div id="outlines-grid"></div>
         </div>
-    
+
         <!-- VISTA: SELECTOR DE TIPO -->
         <div id="outlines-type-selector" class="hidden">
             <div id="type-selector-card">
@@ -327,17 +345,18 @@
                 <button id="btn-cancel-type" class="btn-small-action" style="margin-top: 20px;">Cancelar</button>
             </div>
         </div>
-    
+
         <!-- VISTA: EDITOR -->
         <div id="outlines-editor-view" class="hidden">
             <div id="editor-header">
                 <button id="btn-back-outlines" class="btn-small-action">← Volver</button>
                 <input type="text" id="outline-title-input" placeholder="Título del bosquejo..." class="outline-title-input">
                 <div id="editor-header-actions">
+                    <button id="btn-export-outline-pdf" class="btn-small-action">📄 Exportar PDF</button>
                     <button id="btn-save-outline" class="btn-primary" style="margin-top:0; width:auto; padding: 8px 20px;">Guardar</button>
                 </div>
             </div>
-        
+
             <!-- EDITOR: HOMILÉTICO COMPLETO -->
             <div id="editor-full" class="editor-form hidden">
                 <div class="outline-section">
@@ -382,7 +401,7 @@
                         <input type="text" class="outline-input" id="full-key-word" placeholder="Palabra clave...">
                     </div>
                 </div>
-            
+
                 <!-- PUNTOS PRINCIPALES -->
                 <div class="outline-section">
                     <div class="points-header">
@@ -391,7 +410,7 @@
                     </div>
                     <div id="points-list-full"></div>
                 </div>
-            
+
                 <!-- CONCLUSIÓN -->
                 <div class="outline-section">
                     <label class="outline-label">XII. CONCLUSIÓN</label>
@@ -411,7 +430,7 @@
                     </div>
                 </div>
             </div>
-        
+
             <!-- EDITOR: SENCILLO -->
             <div id="editor-simple" class="editor-form hidden">
                 <div class="outline-section">
@@ -426,13 +445,220 @@
                     <div id="points-list-simple"></div>
                 </div>
             </div>
-        
+
             <!-- EDITOR: LIBRE -->
             <div id="editor-free" class="editor-form hidden">
                 <div class="outline-section" style="flex:1; display:flex; flex-direction:column;">
                     <label class="outline-label">CONTENIDO</label>
                     <textarea class="outline-textarea free-editor" id="free-content" placeholder="Escribe tu bosquejo libremente..."></textarea>
                 </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- ✨ PANTALLA DE EXÉGESIS -->
+    <div id="exegesis-screen" class="fullscreen-overlay hidden">
+    
+        <!-- VISTA: LISTA -->
+        <div id="exegesis-list-view">
+            <div id="exegesis-list-header">
+                <h1>📚 Análisis Exegéticos</h1>
+                <div id="exegesis-header-actions">
+                    <button id="btn-new-exegesis" class="btn-primary" style="margin-top:0; width:auto; padding: 10px 20px;">+ Nuevo Análisis</button>
+                    <button id="btn-close-exegesis" class="close-x" style="width:36px; height:36px; font-size:1rem;">✕</button>
+                </div>
+            </div>
+            <div id="exegesis-grid"></div>
+        </div>
+    
+        <!-- VISTA: EDITOR -->
+        <div id="exegesis-editor-view" class="hidden">
+            <div id="exegesis-editor-header">
+                <button id="btn-back-exegesis" class="btn-small-action">← Volver</button>
+                <input type="text" id="exegesis-title-input" placeholder="Título del análisis..." class="outline-title-input">
+                <input type="text" id="exegesis-passage-input" placeholder="Pasaje (ej: Juan 3:1-21)" class="outline-input" style="width: 200px;">
+                <div id="exegesis-header-actions">
+                    <button id="btn-export-exegesis-pdf" class="btn-small-action">📄 Exportar PDF</button>
+                    <button id="btn-save-exegesis" class="btn-primary" style="margin-top:0; width:auto; padding: 8px 20px;">Guardar</button>
+                </div>
+            </div>
+        
+            <div id="exegesis-form">
+            
+                <!-- SECCIÓN 1 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">1</span>
+                        Introducción y Delimitación
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Delimitación del texto</label>
+                            <p class="field-hint">Define dónde empieza y termina tu pasaje</p>
+                            <textarea class="outline-textarea" id="ex-delimitacion"></textarea>
+                        </div>
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Propósito</label>
+                                <p class="field-hint">¿Por qué elegiste este fragmento?</p>
+                                <textarea class="outline-textarea" id="ex-proposito"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Declaración de Tesis</label>
+                                <p class="field-hint">Mensaje central en una oración</p>
+                                <textarea class="outline-textarea" id="ex-tesis"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 2 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">2</span>
+                        Contexto Histórico y Cultural
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Autoría</label>
+                            <p class="field-hint">¿Quién escribió el texto y a quién iba dirigido?</p>
+                            <textarea class="outline-textarea" id="ex-autoria"></textarea>
+                        </div>
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Fecha y Lugar</label>
+                                <p class="field-hint">Momento histórico y situación geográfica</p>
+                                <textarea class="outline-textarea" id="ex-fecha-lugar"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Propósito Original</label>
+                                <p class="field-hint">¿Por qué escribió el autor en ese momento?</p>
+                                <textarea class="outline-textarea" id="ex-proposito-original"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 3 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">3</span>
+                        Contexto Literario
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-fields-row three-col">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Género</label>
+                                <p class="field-hint">Poesía, ley, carta, narrativa...</p>
+                                <textarea class="outline-textarea" id="ex-genero"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Relación con el libro</label>
+                                <p class="field-hint">¿Cómo encaja dentro del libro completo?</p>
+                                <textarea class="outline-textarea" id="ex-relacion"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Estructura</label>
+                                <p class="field-hint">Subdivisiones o cambios temáticos</p>
+                                <textarea class="outline-textarea" id="ex-estructura"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 4 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">4</span>
+                        Análisis Gramatical y Léxico
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Análisis de Palabras</label>
+                            <p class="field-hint">Términos originales importantes y sus usos</p>
+                            <textarea class="outline-textarea tall" id="ex-analisis-palabras"></textarea>
+                        </div>
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Gramática</label>
+                                <p class="field-hint">Verbos, tiempos y estructuras clave</p>
+                                <textarea class="outline-textarea" id="ex-gramatica"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Comparación de Traducciones</label>
+                                <p class="field-hint">Diferencias clave entre versiones</p>
+                                <textarea class="outline-textarea" id="ex-traduccion"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 5 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">5</span>
+                        Significado Teológico
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Enseñanza Original</label>
+                                <p class="field-hint">¿Qué significaba para su audiencia inicial?</p>
+                                <textarea class="outline-textarea tall" id="ex-ensenanza-original"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Mensaje Central</label>
+                                <p class="field-hint">Verdades teológicas universales</p>
+                                <textarea class="outline-textarea tall" id="ex-mensaje-central"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 6 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">6</span>
+                        Aplicación Contemporánea
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Relevancia Actual</label>
+                                <p class="field-hint">Conexión con la vida y sociedad moderna</p>
+                                <textarea class="outline-textarea tall" id="ex-relevancia"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Ejemplos Prácticos</label>
+                                <p class="field-hint">Formas concretas de vivir esta enseñanza</p>
+                                <textarea class="outline-textarea tall" id="ex-ejemplos"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- SECCIÓN 7 -->
+                <div class="exegesis-section">
+                    <div class="exegesis-section-title">
+                        <span class="exegesis-section-num">7</span>
+                        Conclusión
+                    </div>
+                    <div class="exegesis-fields">
+                        <div class="exegesis-fields-row">
+                            <div class="exegesis-field">
+                                <label class="outline-label">Resumen</label>
+                                <p class="field-hint">Hallazgos más importantes de la investigación</p>
+                                <textarea class="outline-textarea tall" id="ex-resumen"></textarea>
+                            </div>
+                            <div class="exegesis-field">
+                                <label class="outline-label">Reflexión Final</label>
+                                <p class="field-hint">Impacto duradero del pasaje</p>
+                                <textarea class="outline-textarea tall" id="ex-reflexion"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
             </div>
         </div>
     </div>

@@ -3,6 +3,9 @@ const path = require('path');
 const dbManager = require('../database/db-manager');
 const userManager = require('../database/user-manager');
 const outlinesManager = require('../database/outlines-manager');
+const exegesisManager = require('../database/exegesis-manager');
+
+const puppeteer = require('puppeteer');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -49,20 +52,48 @@ ipcMain.handle('update-note', async (e, { id, content }) => await userManager.up
 // HANDLES DE USUARIO (BOSQUEJOS)
 ipcMain.handle('get-outlines', async () => await outlinesManager.getOutlines());
 ipcMain.handle('delete-outline', async (e, id) => await outlinesManager.deleteOutline(id));
-
 ipcMain.handle('save-full-outline', async (e, d) => await outlinesManager.saveFullOutline(d));
 ipcMain.handle('update-full-outline', async (e, d) => await outlinesManager.updateFullOutline(d));
 ipcMain.handle('get-full-outline', async (e, id) => await outlinesManager.getFullOutlineById(id));
-
 ipcMain.handle('save-simple-outline', async (e, d) => await outlinesManager.saveSimpleOutline(d));
 ipcMain.handle('update-simple-outline', async (e, d) => await outlinesManager.updateSimpleOutline(d));
 ipcMain.handle('get-simple-outline', async (e, id) => await outlinesManager.getSimpleOutlineById(id));
-
 ipcMain.handle('save-free-outline', async (e, d) => await outlinesManager.saveFreeOutline(d));
 ipcMain.handle('update-free-outline', async (e, d) => await outlinesManager.updateFreeOutline(d));
 ipcMain.handle('get-free-outline', async (e, id) => await outlinesManager.getFreeOutlineById(id));
-
 ipcMain.handle('save-outline-points', async (e, d) => await outlinesManager.saveOutlinePoints(d.outlineId, d.points));
+    // HANDLE DE EXPORTACIÓN PDF
+ipcMain.handle('export-outline-pdf', async (e, { html, title }) => {
+    const { dialog } = require('electron');
+    
+    const { filePath } = await dialog.showSaveDialog({
+        title: 'Exportar Bosquejo',
+        defaultPath: `${title || 'bosquejo'}.pdf`,
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+    });
+
+    if (!filePath) return { cancelled: true };
+
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.pdf({
+        path: filePath,
+        format: 'A4',
+        margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' },
+        printBackground: true
+    });
+
+    await browser.close();
+    return { success: true, filePath };
+});
+
+// HANDLES DE EXÉGESIS
+ipcMain.handle('get-exegesis-list', async () => await exegesisManager.getExegesisList());
+ipcMain.handle('get-exegesis-by-id', async (e, id) => await exegesisManager.getExegesisById(id));
+ipcMain.handle('save-exegesis', async (e, d) => await exegesisManager.saveExegesis(d));
+ipcMain.handle('update-exegesis', async (e, d) => await exegesisManager.updateExegesis(d));
+ipcMain.handle('delete-exegesis', async (e, id) => await exegesisManager.deleteExegesis(id));
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
