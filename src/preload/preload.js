@@ -19,5 +19,22 @@ contextBridge.exposeInMainWorld('api', {
     saveNote: (data) => ipcRenderer.invoke('save-note', data),
     getNotes: () => ipcRenderer.invoke('get-notes'),
     deleteNote: (id) => ipcRenderer.invoke('delete-note', id),
-    updateNote: (id, content) => ipcRenderer.invoke('update-note', { id, content })
+    updateNote: (id, content) => ipcRenderer.invoke('update-note', { id, content }),
+        // Funciones de usuario - BOSQUEJOS
+    getOutlines: () => ipcRenderer.invoke('get-outlines'),
+    deleteOutline: (id) => ipcRenderer.invoke('delete-outline', id),
+    
+    saveFullOutline: (d) => ipcRenderer.invoke('save-full-outline', d),
+    updateFullOutline: (d) => ipcRenderer.invoke('update-full-outline', d),
+    getFullOutline: (id) => ipcRenderer.invoke('get-full-outline', id),
+    
+    saveSimpleOutline: (d) => ipcRenderer.invoke('save-simple-outline', d),
+    updateSimpleOutline: (d) => ipcRenderer.invoke('update-simple-outline', d),
+    getSimpleOutline: (id) => ipcRenderer.invoke('get-simple-outline', id),
+    
+    saveFreeOutline: (d) => ipcRenderer.invoke('save-free-outline', d),
+    updateFreeOutline: (d) => ipcRenderer.invoke('update-free-outline', d),
+    getFreeOutline: (id) => ipcRenderer.invoke('get-free-outline', id),
+    
+    saveOutlinePoints: (d) => ipcRenderer.invoke('save-outline-points', d),
 });

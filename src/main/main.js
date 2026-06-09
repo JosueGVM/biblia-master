@@ -1,7 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const dbManager = require('../database/db-manager');
-const userManager = require('../database/user-manager'); // Importante
+const userManager = require('../database/user-manager');
+const outlinesManager = require('../database/outlines-manager');
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -44,6 +45,24 @@ ipcMain.handle('save-note', async (e, d) => await userManager.saveNote(d));
 ipcMain.handle('get-notes', async () => await userManager.getNotes());
 ipcMain.handle('delete-note', async (e, id) => await userManager.deleteNote(id));
 ipcMain.handle('update-note', async (e, { id, content }) => await userManager.updateNote(id, content));
+
+// HANDLES DE USUARIO (BOSQUEJOS)
+ipcMain.handle('get-outlines', async () => await outlinesManager.getOutlines());
+ipcMain.handle('delete-outline', async (e, id) => await outlinesManager.deleteOutline(id));
+
+ipcMain.handle('save-full-outline', async (e, d) => await outlinesManager.saveFullOutline(d));
+ipcMain.handle('update-full-outline', async (e, d) => await outlinesManager.updateFullOutline(d));
+ipcMain.handle('get-full-outline', async (e, id) => await outlinesManager.getFullOutlineById(id));
+
+ipcMain.handle('save-simple-outline', async (e, d) => await outlinesManager.saveSimpleOutline(d));
+ipcMain.handle('update-simple-outline', async (e, d) => await outlinesManager.updateSimpleOutline(d));
+ipcMain.handle('get-simple-outline', async (e, id) => await outlinesManager.getSimpleOutlineById(id));
+
+ipcMain.handle('save-free-outline', async (e, d) => await outlinesManager.saveFreeOutline(d));
+ipcMain.handle('update-free-outline', async (e, d) => await outlinesManager.updateFreeOutline(d));
+ipcMain.handle('get-free-outline', async (e, id) => await outlinesManager.getFreeOutlineById(id));
+
+ipcMain.handle('save-outline-points', async (e, d) => await outlinesManager.saveOutlinePoints(d.outlineId, d.points));
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
