@@ -5,6 +5,9 @@ let currentChapter = 1;
 let selectedVerses = [];
 let favoritesCache = []; // ✨ para cachear favoritos
 let editingNoteId = null; // ✨ para saber si estamos editando o creando una nota
+let searchAllVersions = false;
+let activeFilters = { testament: null, versions: new Set(), books: new Set() };
+let lastSearchResults = [];
 
 const columnsContainer = document.getElementById('text-columns-container');
 const leftSidebar = document.getElementById('prev-books');
@@ -29,6 +32,7 @@ async function init() {
         // Fallback: si no hay nada, al menos intenta cargar Génesis con algo
         loadContent();
     }
+    setupTooltips();
 }
 
 function showStartUpSelector() {
@@ -274,16 +278,16 @@ function setupStaticEventListeners() {
 
     function getNextAvailableVersion() {
     return allAvailableVersions.find(v => !activeVersions.includes(v)) || allAvailableVersions[0];
-}
+    }
 
-document.getElementById('add-version-left').onclick = () => { 
-    activeVersions.unshift(getNextAvailableVersion()); 
-    loadContent(); 
-};
-document.getElementById('add-version-right').onclick = () => { 
-    activeVersions.push(getNextAvailableVersion()); 
-    loadContent(); 
-};
+    document.getElementById('add-version-left').onclick = () => { 
+        activeVersions.unshift(getNextAvailableVersion()); 
+        loadContent(); 
+    };
+    document.getElementById('add-version-right').onclick = () => { 
+        activeVersions.push(getNextAvailableVersion()); 
+        loadContent(); 
+    };
 
     document.getElementById('btn-open-search').onclick = () => { document.getElementById('search-modal').classList.remove('hidden'); document.getElementById('search-input').focus(); };
     document.getElementById('btn-close-search').onclick = () => document.getElementById('search-modal').classList.add('hidden');
@@ -401,92 +405,37 @@ document.getElementById('add-version-right').onclick = () => {
         }
     });
 
+        // Toggle modo búsqueda
+    document.getElementById('search-mode-toggle').onclick = () => {
+        searchAllVersions = !searchAllVersions;
+        const btn = document.getElementById('search-mode-toggle');
+        btn.classList.toggle('active', searchAllVersions);
+        btn.querySelector('span').innerText = searchAllVersions ? 'Todas' : 'Activas';
+    };
+
     // Buscador
-    // Estado del modo de búsqueda
-let searchAllVersions = false;
+    const searchInput = document.getElementById('search-input');
+    searchInput.onkeyup = async (e) => {
+        if (e.key !== "Enter") return;
+        const query = e.target.value.trim();
+        if (query.length < 2) return;
 
-document.getElementById('search-mode-toggle').onclick = () => {
-    searchAllVersions = !searchAllVersions;
-    const btn = document.getElementById('search-mode-toggle');
-    btn.classList.toggle('active', searchAllVersions);
-    btn.querySelector('span').innerText = searchAllVersions ? 'Todas' : 'Activas';
-};
+        const list = document.getElementById('results-list');
+        list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Buscando...</p>";
+        document.getElementById('search-title-display').innerText = `"${query}"`;
 
-const searchInput = document.getElementById('search-input');
-searchInput.onkeyup = async (e) => {
-    if (e.key !== "Enter") return;
-    const query = e.target.value.trim();
-    if (query.length < 2) return;
+        // Reset filtros
+        activeFilters = { testament: null, versions: new Set(), books: new Set() };
 
-    const list = document.getElementById('results-list');
-    list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Buscando...</p>";
-    document.getElementById('search-title-display').innerText = `"${query}"`;
+        if (searchAllVersions) {
+            lastSearchResults = await window.api.searchAll({ keyword: query });
+        } else {
+            lastSearchResults = await window.api.search({ version: activeVersions[0], keyword: query });
+        }
 
-    if (searchAllVersions) {
-        // Modo: todas las versiones
-        const results = await window.api.searchAll({ keyword: query });
-        document.getElementById('results-count').innerText = `${results.length} resultados`;
-        list.innerHTML = "";
-
-        // Agrupar por versión
-        const grouped = {};
-        results.forEach(r => {
-            if (!grouped[r.version]) grouped[r.version] = [];
-            grouped[r.version].push(r);
-        });
-
-        Object.keys(grouped).forEach(version => {
-            // Encabezado de versión
-            const vHeader = document.createElement('div');
-            vHeader.style.cssText = `
-                padding: 8px 0; margin: 15px 0 8px 0;
-                font-size: 0.7rem; font-weight: 800; letter-spacing: 2px;
-                color: var(--accent); text-transform: uppercase;
-                border-bottom: 1px solid var(--border);
-            `;
-            vHeader.innerText = `${version} — ${grouped[version].length} resultados`;
-            list.appendChild(vHeader);
-
-            grouped[version].forEach(res => {
-                const div = document.createElement('div');
-                div.classList.add('search-item');
-                div.innerHTML = `
-                    <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
-                    <p>${res.text}</p>
-                `;
-                div.onclick = () => {
-                    if (!activeVersions.includes(version)) activeVersions.push(version);
-                    currentBook = res.book_name;
-                    currentChapter = res.chapter;
-                    document.getElementById('search-modal').classList.add('hidden');
-                    loadContent(res.verse_number);
-                };
-                list.appendChild(div);
-            });
-        });
-
-    } else {
-        // Modo: versiones activas (comportamiento original)
-        const results = await window.api.search({ version: activeVersions[0], keyword: query });
-        document.getElementById('results-count').innerText = `${results.length} resultados`;
-        list.innerHTML = "";
-        results.forEach(res => {
-            const div = document.createElement('div');
-            div.classList.add('search-item');
-            div.innerHTML = `
-                <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
-                <p>${res.text}</p>
-            `;
-            div.onclick = () => {
-                currentBook = res.book_name;
-                currentChapter = res.chapter;
-                document.getElementById('search-modal').classList.add('hidden');
-                loadContent(res.verse_number);
-            };
-            list.appendChild(div);
-        });
-    }
-};
+        buildFilters(lastSearchResults);
+        renderFilteredResults();
+    };
 
     // Marcatextos y Copiado
     document.querySelectorAll('.btn-color').forEach(btn => btn.onclick = () => applyHighlight(btn.dataset.color));
@@ -518,6 +467,26 @@ searchInput.onkeyup = async (e) => {
             });
         };
     });
+
+    // Menú hamburguesa HEADER
+    document.getElementById('btn-hamburger').onclick = (e) => {
+        e.stopPropagation();
+        document.getElementById('hamburger-dropdown').classList.toggle('hidden');
+    };
+
+    document.querySelectorAll('.hamburger-item').forEach(item => {
+        item.onclick = () => {
+            document.getElementById('hamburger-dropdown').classList.add('hidden');
+            document.getElementById(item.dataset.target).click();
+        };
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#header-hamburger-controls')) {
+            document.getElementById('hamburger-dropdown').classList.add('hidden');
+        }
+    });
+
 }
 
 // --- FUNCIONES DE SOPORTE ---
@@ -1014,6 +983,243 @@ async function loadHighlights() {
 
     } catch (err) {
         console.error("Error al cargar highlights:", err);
+    }
+}
+
+// ============================================
+// ✨ FILTROS DE BÚSQUEDA
+// ============================================
+
+const oldTestament = ["Génesis","Éxodo","Levítico","Números","Deuteronomio","Josué","Jueces","Rut",
+    "1 Samuel","2 Samuel","1 Reyes","2 Reyes","1 Crónicas","2 Crónicas","Esdras","Nehemías","Ester",
+    "Job","Salmos","Proverbios","Eclesiastés","Cantares","Isaías","Jeremías","Lamentaciones",
+    "Ezequiel","Daniel","Oseas","Joel","Amós","Abdías","Jonás","Miqueas","Nahúm","Habacuc",
+    "Sofonías","Hageo","Zacarías","Malaquías"];
+
+const newTestament = ["Mateo","Marcos","Lucas","Juan","Hechos","Romanos","1 Corintios","2 Corintios",
+    "Gálatas","Efesios","Filipenses","Colosenses","1 Tesalonicenses","2 Tesalonicenses","1 Timoteo",
+    "2 Timoteo","Tito","Filemón","Hebreos","Santiago","1 Pedro","2 Pedro","1 Juan","2 Juan",
+    "3 Juan","Judas","Apocalipsis"];
+
+function getTestament(book) {
+    if (oldTestament.includes(book)) return 'AT';
+    if (newTestament.includes(book)) return 'NT';
+    return null;
+}
+
+function buildFilters(results) {
+    const bar = document.getElementById('search-filters-bar');
+    const scroll = document.getElementById('search-filters-scroll');
+    scroll.innerHTML = "";
+
+    if (!results || results.length === 0) {
+        bar.classList.add('hidden');
+        return;
+    }
+
+    // Recopilar valores únicos
+    const versions = [...new Set(results.map(r => r.version))];
+    const books = [...new Set(results.map(r => r.book_name))];
+    const hasAT = books.some(b => oldTestament.includes(b));
+    const hasNT = books.some(b => newTestament.includes(b));
+
+    // Grupo: Testamento (solo si hay resultados en ambos)
+    if (hasAT && hasNT) {
+        const group = createFilterGroup('Testamento', [
+            { label: 'A.T.', key: 'AT' },
+            { label: 'N.T.', key: 'NT' }
+        ], (key) => {
+            activeFilters.testament = activeFilters.testament === key ? null : key;
+            renderFilteredResults();
+            updateFilterChips();
+        }, (key) => activeFilters.testament === key);
+        scroll.appendChild(group);
+        scroll.appendChild(createSeparator());
+    }
+
+    // Grupo: Versiones (solo si hay más de una)
+    if (versions.length > 1) {
+        const group = createFilterGroup('Versión', 
+            versions.map(v => ({ label: v, key: v })),
+            (key) => {
+                if (activeFilters.versions.has(key)) activeFilters.versions.delete(key);
+                else activeFilters.versions.add(key);
+                renderFilteredResults();
+                updateFilterChips();
+            },
+            (key) => activeFilters.versions.has(key)
+        );
+        scroll.appendChild(group);
+        scroll.appendChild(createSeparator());
+    }
+
+    // Grupo: Libros (solo si hay más de uno)
+    if (books.length > 1) {
+        const group = createFilterGroup('Libro',
+            books.map(b => ({ label: b, key: b })),
+            (key) => {
+                if (activeFilters.books.has(key)) activeFilters.books.delete(key);
+                else activeFilters.books.add(key);
+                renderFilteredResults();
+                updateFilterChips();
+            },
+            (key) => activeFilters.books.has(key)
+        );
+        scroll.appendChild(group);
+    }
+
+    bar.classList.remove('hidden');
+}
+
+function createFilterGroup(label, items, onToggle, isActive) {
+    const group = document.createElement('div');
+    group.classList.add('filter-group');
+
+    const lbl = document.createElement('span');
+    lbl.classList.add('filter-group-label');
+    lbl.innerText = label;
+    group.appendChild(lbl);
+
+    items.forEach(item => {
+        const chip = document.createElement('div');
+        chip.classList.add('filter-chip');
+        chip.innerText = item.label;
+        chip.dataset.key = item.key;
+        if (isActive(item.key)) chip.classList.add('active');
+        chip.onclick = () => onToggle(item.key);
+        group.appendChild(chip);
+    });
+
+    return group;
+}
+
+function createSeparator() {
+    const sep = document.createElement('div');
+    sep.classList.add('filter-separator');
+    return sep;
+}
+
+function updateFilterChips() {
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        const key = chip.dataset.key;
+        const isTestament = key === 'AT' || key === 'NT';
+        const isVersion = [...activeFilters.versions].includes(key) || 
+                          (activeFilters.versions.size === 0 && !isTestament && !activeFilters.books.has(key));
+        
+        if (isTestament) {
+            chip.classList.toggle('active', activeFilters.testament === key);
+        } else if (activeFilters.versions.has(key)) {
+            chip.classList.toggle('active', true);
+        } else if (activeFilters.books.has(key)) {
+            chip.classList.toggle('active', true);
+        } else {
+            chip.classList.toggle('active', false);
+        }
+    });
+}
+
+function applyFilters(results) {
+    return results.filter(r => {
+        // Filtro testamento
+        if (activeFilters.testament) {
+            const t = getTestament(r.book_name);
+            if (t !== activeFilters.testament) return false;
+        }
+        // Filtro versiones
+        if (activeFilters.versions.size > 0 && !activeFilters.versions.has(r.version)) return false;
+        // Filtro libros
+        if (activeFilters.books.size > 0 && !activeFilters.books.has(r.book_name)) return false;
+        return true;
+    });
+}
+
+function renderFilteredResults() {
+    const list = document.getElementById('results-list');
+    list.innerHTML = "";
+    const filtered = applyFilters(lastSearchResults);
+
+    document.getElementById('results-count').innerText = `${filtered.length} resultados`;
+
+    if (filtered.length === 0) {
+        list.innerHTML = "<p style='text-align:center; padding:20px; color:var(--text-muted);'>Sin resultados para estos filtros</p>";
+        return;
+    }
+
+    if (searchAllVersions) {
+        // Agrupar por versión
+        const grouped = {};
+        filtered.forEach(r => {
+            if (!grouped[r.version]) grouped[r.version] = [];
+            grouped[r.version].push(r);
+        });
+
+        Object.keys(grouped).forEach(version => {
+            const vHeader = document.createElement('div');
+            vHeader.style.cssText = `padding: 8px 0; margin: 15px 0 8px 0; font-size: 0.7rem; 
+                font-weight: 800; letter-spacing: 2px; color: var(--accent); 
+                text-transform: uppercase; border-bottom: 1px solid var(--border);`;
+            vHeader.innerText = `${version} — ${grouped[version].length} resultados`;
+            list.appendChild(vHeader);
+
+            grouped[version].forEach(res => list.appendChild(createResultItem(res, version)));
+        });
+    } else {
+        filtered.forEach(res => list.appendChild(createResultItem(res, res.version)));
+    }
+}
+
+function createResultItem(res, version) {
+    const div = document.createElement('div');
+    div.classList.add('search-item');
+    div.innerHTML = `
+        <span class="search-item-ref">${res.book_name} ${res.chapter}:${res.verse_number}</span>
+        <p>${res.text}</p>
+    `;
+    div.onclick = () => {
+        if (!activeVersions.includes(version)) activeVersions.push(version);
+        currentBook = res.book_name;
+        currentChapter = res.chapter;
+        document.getElementById('search-modal').classList.add('hidden');
+        loadContent(res.verse_number);
+    };
+    return div;
+}
+
+// ============================================
+// ✨ TOOLTIPS CUSTOM
+// ============================================
+function setupTooltips() {
+    const tooltip = document.getElementById('tooltip');
+
+    document.querySelectorAll('[title]').forEach(el => {
+        const text = el.getAttribute('title');
+        el.removeAttribute('title'); // elimina el tooltip nativo
+        el.dataset.tooltip = text;   // guarda el texto en data
+
+        el.addEventListener('mouseenter', (e) => {
+            tooltip.innerText = el.dataset.tooltip;
+            tooltip.classList.add('visible');
+            moveTooltip(e);
+        });
+
+        el.addEventListener('mousemove', moveTooltip);
+
+        el.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+        });
+    });
+
+    function moveTooltip(e) {
+        const offset = 12;
+        let x = e.clientX + offset;
+        let y = e.clientY + offset;
+
+        // Evitar que se salga de la pantalla
+        if (x + tooltip.offsetWidth > window.innerWidth) x = e.clientX - tooltip.offsetWidth - offset;
+        if (y + tooltip.offsetHeight > window.innerHeight) y = e.clientY - tooltip.offsetHeight - offset;
+
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = y + 'px';
     }
 }
 
