@@ -42,13 +42,13 @@
     flex-shrink: 0;
 }
 
-#app-title {
+#app-title-bar {
     font-size: 0.75rem;
-    font-weight: 800;
     letter-spacing: 2px;
-    text-transform: uppercase;
     color: var(--text-muted);
-}
+} 
+.brand-main {text-transform: uppercase; font-weight: 800;}
+.brand-sub { text-transform: none; font-weight: 300; }
 
 #window-controls {
     display: flex;

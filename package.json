@@ -1,5 +1,5 @@
 {
-  "name": "CODEX",
+  "name": "codex-viewer",
   "version": "1.7.3",
   "description": "Lector de Biblia Personalizado y Multiversión",
   "main": "src/main/main.js",
@@ -10,7 +10,7 @@
   },
   "build": {
     "appId": "com.josuegvm.bibliamaster",
-    "productName": "Biblia Master",
+    "productName": "CODEX Viewer",
     "copyright": "Copyright © 2026 JosueGVM",
     "directories": {
       "output": "dist"

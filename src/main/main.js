@@ -11,6 +11,7 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1300,
         height: 850,
+        title: "CODEX viewer",
         frame: false, // esto elimina la barra nativa completamente
         webPreferences: {
             preload: path.join(__dirname, '../preload/preload.js'),
