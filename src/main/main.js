@@ -21,7 +21,6 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-    ipcMain.handle('window-close', () => win.close());
         // HANDLES VENTANA CUSTOM
     ipcMain.handle('window-minimize', () => win.minimize());
     ipcMain.handle('window-maximize', () => { win.isMaximized() ? win.unmaximize() : win.maximize(); });

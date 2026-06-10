@@ -1,6 +1,6 @@
 {
-  "name": "biblia-master",
-  "version": "1.0.0",
+  "name": "CODEX",
+  "version": "1.7.3",
   "description": "Lector de Biblia Personalizado y Multiversión",
   "main": "src/main/main.js",
   "author": "JosueGVM",
@@ -11,7 +11,7 @@
   "build": {
     "appId": "com.josuegvm.bibliamaster",
     "productName": "Biblia Master",
-    "copyright": "Copyright © 2024 JosueGVM",
+    "copyright": "Copyright © 2026 JosueGVM",
     "directories": {
       "output": "dist"
     },

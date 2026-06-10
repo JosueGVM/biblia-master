@@ -13,7 +13,14 @@ const bibleStructure = [
     { name: "Rut", group: "Históricos", testament: "Antiguo" },
     { name: "1 Samuel", group: "Históricos", testament: "Antiguo" },
     { name: "2 Samuel", group: "Históricos", testament: "Antiguo" },
-    
+    { name: "1 Reyes", group: "Históricos", testament: "Antiguo" },
+    { name: "2 Reyes", group: "Históricos", testament: "Antiguo" },
+    { name: "1 Crónicas", group: "Históricos", testament: "Antiguo" },
+    { name: "2 Crónicas", group: "Históricos", testament: "Antiguo" },
+    { name: "Esdras", group: "Históricos", testament: "Antiguo" },
+    { name: "Nehemías", group: "Históricos", testament: "Antiguo" },
+    { name: "Ester", group: "Históricos", testament: "Antiguo" },
+
       // Poéticos (Antiguo Testamento)
     { name: "Job", group: "Poéticos", testament: "Antiguo" },
     { name: "Salmos", group: "Poéticos", testament: "Antiguo" },
