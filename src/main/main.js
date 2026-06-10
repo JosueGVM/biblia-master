@@ -9,11 +9,26 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 
 function createWindow() {
+    // Splash screen
+    const splash = new BrowserWindow({
+        width: 480,
+        height: 320,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: true,
+        resizable: false,
+        webPreferences: { nodeIntegration: false }
+    });
+
+    splash.loadFile(path.join(__dirname, '../renderer/splash.html'));
+    splash.center();
+
+    // Ventana principal (oculta al inicio)
     const win = new BrowserWindow({
         width: 1300,
         height: 850,
-        title: "CODEX viewer",
-        frame: false, // esto elimina la barra nativa completamente
+        frame: false,
+        show: false, // ← oculta hasta que cargue
         webPreferences: {
             preload: path.join(__dirname, '../preload/preload.js'),
             nodeIntegration: false,
@@ -23,7 +38,27 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-        // HANDLES VENTANA CUSTOM
+    // Cuando la ventana principal esté lista, cerrar splash y mostrar app
+    win.once('ready-to-show', () => {
+    setTimeout(() => {
+        // Fade out del splash antes de cerrarlo
+        splash.webContents.executeJavaScript(`
+            document.body.style.transition = 'opacity 0.5s ease';
+            document.body.style.opacity = '0';
+        `);
+        setTimeout(() => {
+            splash.destroy();
+            win.show();
+            win.center();
+        }, 500); // ← 0.5s de fade out
+    }, 4000);
+});
+
+    // Handles de ventana
+    ipcMain.removeHandler('window-minimize');
+    ipcMain.removeHandler('window-maximize');
+    ipcMain.removeHandler('window-close');
+
     ipcMain.handle('window-minimize', () => win.minimize());
     ipcMain.handle('window-maximize', () => { win.isMaximized() ? win.unmaximize() : win.maximize(); });
     ipcMain.handle('window-close', () => win.close());

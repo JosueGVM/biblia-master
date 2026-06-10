@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 100vw; height: 100vh;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            color: #e0e0e0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #app-name {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 6px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.2s;
+        }
+
+        #app-subtitle {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #569cd6;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.4s;
+        }
+
+        #verse-container {
+            max-width: 380px;
+            text-align: center;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.6s;
+        }
+
+        #verse-text {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #aaa;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        #verse-ref {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #569cd6;
+            letter-spacing: 1px;
+        }
+
+        #loader {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards 0.8s;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #569cd6;
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-name">Codex</div>
+    <div id="app-subtitle">Estudio Bíblico</div>
+    <div id="verse-container">
+        <div id="verse-text"></div>
+        <div id="verse-ref"></div>
+    </div>
+    <div id="loader">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <script>
+        const verses = [
+            { text: "Lámpara es a mis pies tu palabra, y lumbrera a mi camino.", ref: "Salmos 119:105" },
+            { text: "Toda la Escritura es inspirada por Dios, y útil para enseñar, para redargüir, para corregir, para instruir en justicia.", ref: "2 Timoteo 3:16" },
+            { text: "Porque la palabra de Dios es viva y eficaz, y más cortante que toda espada de dos filos.", ref: "Hebreos 4:12" },
+            { text: "En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.", ref: "Juan 1:1" },
+            { text: "Escudriñad las Escrituras; porque a vosotros os parece que en ellas tenéis la vida eterna.", ref: "Juan 5:39" },
+            { text: "La exposición de tus palabras alumbra; hace entender a los simples.", ref: "Salmos 119:130" },
+            { text: "¿Con qué limpiará el joven su camino? Con guardar tu palabra.", ref: "Salmos 119:9" },
+            { text: "Procura con diligencia presentarte a Dios aprobado, como obrero que no tiene de qué avergonzarse, que usa bien la palabra de verdad.", ref: "2 Timoteo 2:15" },
+            { text: "No se apartará de tu boca este libro de la ley, sino que de día y de noche meditarás en él.", ref: "Josué 1:8" },
+            { text: "Porque todo lo que fue escrito anteriormente fue escrito para nuestra enseñanza.", ref: "Romanos 15:4" },
+        ];
+
+        const random = verses[Math.floor(Math.random() * verses.length)];
+        document.getElementById('verse-text').innerText = `"${random.text}"`;
+        document.getElementById('verse-ref').innerText = random.ref;
+    </script>
+</body>
+</html>
