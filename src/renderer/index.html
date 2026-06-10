@@ -11,6 +11,15 @@
 
 <body class="theme-dark">
     <div id="app-container">
+        <div id="custom-titlebar">
+            <span id="app-title">Codex</span>
+            <div id="window-controls">
+                <button id="btn-minimize" class="window-btn">─</button>
+                <button id="btn-maximize" class="window-btn">□</button>
+                <button id="btn-close" class="window-btn close">✕</button>
+            </div>
+        </div>
+
         <!-- Sidebar Izquierdo -->
         <aside class="sidebar"><div id="prev-books"></div></aside>
 
@@ -349,6 +358,7 @@
         <!-- VISTA: EDITOR -->
         <div id="outlines-editor-view" class="hidden">
             <div id="editor-header">
+                <button class="btn-open-floating-reader btn-small-action" title="Lector flotante">📖 Lector</button>
                 <button id="btn-back-outlines" class="btn-small-action">← Volver</button>
                 <input type="text" id="outline-title-input" placeholder="Título del bosquejo..." class="outline-title-input">
                 <div id="editor-header-actions">
@@ -474,6 +484,7 @@
         <!-- VISTA: EDITOR -->
         <div id="exegesis-editor-view" class="hidden">
             <div id="exegesis-editor-header">
+                <button class="btn-open-floating-reader btn-small-action" title="Lector flotante">📖 Lector</button>
                 <button id="btn-back-exegesis" class="btn-small-action">← Volver</button>
                 <input type="text" id="exegesis-title-input" placeholder="Título del análisis..." class="outline-title-input">
                 <input type="text" id="exegesis-passage-input" placeholder="Pasaje (ej: Juan 3:1-21)" class="outline-input" style="width: 200px;">
@@ -661,6 +672,41 @@
             
             </div>
         </div>
+    </div>
+
+    <!-- ✨ LECTOR FLOTANTE -->
+    <div id="floating-reader" class="hidden">
+        <div id="floating-reader-titlebar">
+            <div id="floating-reader-nav">
+                <button id="fr-prev" class="fr-nav-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <div id="fr-title">
+                    <span id="fr-book-btn" class="fr-clickable">Génesis</span>
+                    <span id="fr-chapter-btn" class="fr-clickable">1</span>
+                </div>
+                <button id="fr-next" class="fr-nav-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+            <div id="floating-reader-actions">
+                <button id="fr-sync-btn" class="fr-action-btn" title="Sincronizar con lector principal">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 .49-3.49"></path>
+                    </svg>
+                </button>
+                <button id="fr-close" class="fr-action-btn">✕</button>
+            </div>
+        </div>
+        <div id="floating-reader-version-bar">
+            <select id="fr-version-select" class="version-select"></select>
+        </div>
+        <div id="floating-reader-content"></div>
     </div>
 
     <!-- CAPA INICIAL: SELECCIÓN DE VERSIÓN -->

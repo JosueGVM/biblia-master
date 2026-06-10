@@ -1,6 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+        // Ventana Custom
+    windowMinimize: () => ipcRenderer.invoke('window-minimize'),
+    windowMaximize: () => ipcRenderer.invoke('window-maximize'),
+    windowClose: () => ipcRenderer.invoke('window-close'),  
+        // Get Chapter
     getChapter: (data) => ipcRenderer.invoke('get-chapter', data),
     getVersions: () => ipcRenderer.invoke('get-versions'),
         // Funciones de usuario - Búsqueda

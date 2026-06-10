@@ -11,6 +11,7 @@ function createWindow() {
     const win = new BrowserWindow({
         width: 1300,
         height: 850,
+        frame: false, // esto elimina la barra nativa completamente
         webPreferences: {
             preload: path.join(__dirname, '../preload/preload.js'),
             nodeIntegration: false,
@@ -21,7 +22,10 @@ function createWindow() {
     win.loadFile(path.join(__dirname, '../renderer/index.html'));
 
     ipcMain.handle('window-close', () => win.close());
-
+        // HANDLES VENTANA CUSTOM
+    ipcMain.handle('window-minimize', () => win.minimize());
+    ipcMain.handle('window-maximize', () => { win.isMaximized() ? win.unmaximize() : win.maximize(); });
+    ipcMain.handle('window-close', () => win.close());
 }
 
 // HANDLES DE BIBLIA

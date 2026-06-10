@@ -30,6 +30,16 @@ export async function loadContent(targetVerse = null) {
             setTimeout(() => scrollToVerse(targetVerse), 200);
         }
     } catch (err) { console.error(err); }
+
+    // Sincronizar lector flotante si está activo y en modo sync
+    const frPanel = document.getElementById('floating-reader');
+    if (frPanel && !frPanel.classList.contains('hidden')) {
+        import('./floating-reader.js').then(m => {
+            if (document.getElementById('fr-sync-btn').classList.contains('synced')) {
+                m.syncWithMain();
+            }
+        });
+    }
 }
 
 export function renderColumn(index, version, verses, highlights) {

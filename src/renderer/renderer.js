@@ -8,6 +8,7 @@ import { buildFilters, renderFilteredResults } from './modules/search.js';
 import { loadAppSettings, setupTooltips } from './modules/settings.js';
 import { openOutlinesScreen } from './modules/outlines.js';
 import { openExegesisScreen } from './modules/exegesis.js';
+import { openFloatingReader, syncWithMain, initFloatingReader } from './modules/floating-reader.js';
 
 // ============================================
 // ESTADO GLOBAL — exportado para módulos
@@ -45,6 +46,7 @@ async function init() {
     if (activeVersions.length === 0) showStartUpSelector();
     else loadContent();
     setupTooltips();
+    initFloatingReader();
 }
 
 function showStartUpSelector() {
@@ -234,6 +236,14 @@ function setupStaticEventListeners() {
 
     document.getElementById('btn-open-outlines').onclick = () => openOutlinesScreen();
     document.getElementById('btn-open-exegesis').onclick = () => openExegesisScreen();
+        // Lector flotante (exégesis y bosquejo)
+    document.querySelectorAll('.btn-open-floating-reader').forEach(btn => {
+    btn.onclick = () => openFloatingReader(); 
+    });
 }
+
+    document.getElementById('btn-minimize').onclick = () => window.api.windowMinimize();
+    document.getElementById('btn-maximize').onclick = () => window.api.windowMaximize();
+    document.getElementById('btn-close').onclick = () => window.api.windowClose();
 
 window.addEventListener('DOMContentLoaded', init);
