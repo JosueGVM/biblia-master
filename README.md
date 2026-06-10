@@ -1,6 +1,6 @@
-# 📖 Biblia Master
+# 📖 CODEX Viewer (anteriormente Biblia Master)
 
-**Biblia Master** es un lector de la Biblia personalizado, minimalista y multiplataforma, construido con tecnologías web modernas y enfocado en la experiencia de estudio profundo. Permite la comparación dinámica de versiones, navegación contextual inteligente y una personalización completa de la interfaz.
+**CODEX Viewer** es un lector de la Biblia personalizado, minimalista y multiplataforma, construido con tecnologías web modernas y enfocado en la experiencia de estudio profundo. Permite la comparación dinámica de versiones, navegación contextual inteligente y una personalización completa de la interfaz.
 
 Este proyecto nació como un ejercicio de aprendizaje en programación, buscando crear una herramienta que sea tan funcional como estéticamente agradable.
 
@@ -12,6 +12,7 @@ Este proyecto nació como un ejercicio de aprendizaje en programación, buscando
 -   **🔗 Scroll Sincronizado:** Todas las columnas se desplazan en perfecta sincronía mediante un sistema de porcentaje de lectura.
 -   **🧭 Navegación Inteligente:** Barras laterales dinámicas que agrupan los libros y abren automáticamente las secciones más cercanas al texto actual.
 -   **🔍 Buscador Global:** Encuentra palabras o frases en toda la Biblia de forma instantánea.
+-   **📝 Gestor de sermones y analisis exegéticos:** Crea, modifica y exporta en PDF tus sermones o estudios al texto bíblico.
 -   **🎨 Personalización Total:**
     -   Modos de color: Oscuro, Claro y **Sepia** (descanso visual).
     -   Ajuste dinámico del tamaño de la fuente.
@@ -38,10 +39,10 @@ Debes tener instalado [Node.js](https://nodejs.org/) en tu equipo.
 ### Pasos
 1. Clona este repositorio:
    ```bash
-   git clone https://github.com/JosueGVM/biblia-master.git
+   git clone https://github.com/JosueGVM/codex-viewer.git
    
 2. Entra en la carpeta del proyecto:
-    cd biblia-master
+    cd codex-viewer
     
 3. Instala las dependencias:
     npm install
