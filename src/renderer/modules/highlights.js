@@ -21,6 +21,7 @@ export async function loadHighlights() {
                 <div class="highlight-body">
                     <span class="highlight-ref">${h.book_name} ${h.chapter}:${h.verse_number} · </span>
                     <span class="highlight-ref-version"> ${h.version}</span>
+                    ${h.text ? `<p class="highlight-text">${h.text}</p>` : ''}
                 </div>
                 <div class="item-footer-actions">
                     <button class="btn-small-action btn-hl-ir">📖 IR</button>

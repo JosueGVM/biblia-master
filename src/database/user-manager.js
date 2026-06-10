@@ -26,9 +26,12 @@ const db = new sqlite3.Database(dbPath);
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS highlights (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book_name TEXT, chapter INTEGER, verse_number INTEGER, color TEXT, version TEXT,
+        book_name TEXT, chapter INTEGER, verse_number INTEGER, color TEXT, version TEXT, text TEXT,
         UNIQUE(book_name, chapter, verse_number, version)
     )`);
+        db.run(`ALTER TABLE highlights ADD COLUMN text TEXT`, (err) => {
+            // Ignorar error si la columna ya existe
+        });
     db.run(`CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_name TEXT, chapter INTEGER, verse_number INTEGER, content TEXT, version TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -54,8 +57,8 @@ function saveHighlight(data) {
                 if (err) reject(err); else resolve({ deleted: true });
             });
         } else {
-            db.run(`INSERT OR REPLACE INTO highlights (book_name, chapter, verse_number, color, version) VALUES (?,?,?,?,?)`,
-            [data.book, data.chapter, data.verse, data.color, data.version], (err) => {
+            db.run(`INSERT OR REPLACE INTO highlights (book_name, chapter, verse_number, color, version, text) VALUES (?,?,?,?,?,?)`,
+            [data.book, data.chapter, data.verse, data.color, data.version, data.text || ''], (err) => {
                 if (err) reject(err); else resolve({ success: true });
             });
         }

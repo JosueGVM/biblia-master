@@ -22,7 +22,7 @@ export function updateActionToolbar() {
 
 export async function applyHighlight(color) {
     for (const v of selectedVerses) {
-        await window.api.saveHighlight({ book: v.book, chapter: v.chapter, verse: v.verse, version: v.version, color });
+        await window.api.saveHighlight({ book: v.book, chapter: v.chapter, verse: v.verse, version: v.version, color, text: v.text });
         const cols = document.querySelectorAll(`.version-column[data-version="${v.version}"]`);
         cols.forEach(col => {
             const vEl = col.querySelector(`.verse[data-verse="${v.verse}"]`);

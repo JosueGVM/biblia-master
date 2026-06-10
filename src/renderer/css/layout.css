@@ -242,7 +242,7 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 #header-spacer { display: none;}
 
 /* Breakpoint < 1000px */
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
     #header-left-controls,
     #header-right-controls {
         display: none !important;
@@ -501,6 +501,7 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 .action-buttons-group { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .action-buttons-group button { background: transparent; border: none; font-size: 1.4rem; }
 .color-grid { 
+    align-items: center;
     display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 15px; 
 }
 
@@ -514,14 +515,6 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 .btn-color:hover {
     transform: scale(1.15); box-shadow: 0 0 8px rgba(0,0,0,0.5); border-color: var(--accent);
 }
-
-/* Colores específicos (ahora VISIBLES) */
-.btn-color.c1 { background-color: #fcf6bd; }  /* 🟡 Amarillo */
-.btn-color.c2 { background-color: #d0f4de; }  /* 🟢 Verde */
-.btn-color.c3 { background-color: #ffadad; }  /* 🔴 Rojo */
-.btn-color.c4 { background-color: #a0c4ff; }  /* 🔵 Azul */
-
-.btn-color-clear { background: transparent; border: none; font-size: 1.2rem; }
 
 /* =========================================
    9. PANTALLA DE INICIO (VERSION CARDS)
@@ -705,6 +698,14 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
     border-bottom: 1px solid var(--border); background: var(--bg-header);
 }
 
+.highlight-text {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.5;
+    margin-top: 4px;
+    opacity: 0.85;
+}
+
 .hl-filter-dot {
     width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
     cursor: pointer; transition: all 0.2s; flex-shrink: 0;
@@ -747,6 +748,14 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
     display: flex; align-items: center; gap: 10px;
 }
 
+/* Colores específicos (ahora VISIBLES) */
+.btn-color.c1 { background-color: #fcf6bd; }  /* 🟡 Amarillo */
+.btn-color.c2 { background-color: #d0f4de; }  /* 🟢 Verde */
+.btn-color.c3 { background-color: #ffadad; }  /* 🔴 Rojo */
+.btn-color.c4 { background-color: #a0c4ff; }  /* 🔵 Azul */
+
+.btn-color-clear { background: transparent; border: none; font-size: 1.2rem; }
+
 /* TOOLTIP CUSTOM */
 .tooltip {
     position: fixed;
@@ -775,8 +784,8 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 
 .fullscreen-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
+    top: 32px; left: 0;
+    width: 100vw; height: calc(100vh - 32px);
     background: var(--bg-main);
     z-index: 9500;
     display: flex;
