@@ -4,6 +4,7 @@ const dbManager = require('../database/db-manager');
 const userManager = require('../database/user-manager');
 const outlinesManager = require('../database/outlines-manager');
 const exegesisManager = require('../database/exegesis-manager');
+const fs = require('fs');
 
 const puppeteer = require('puppeteer');
 
@@ -98,6 +99,21 @@ ipcMain.handle('get-exegesis-by-id', async (e, id) => await exegesisManager.getE
 ipcMain.handle('save-exegesis', async (e, d) => await exegesisManager.saveExegesis(d));
 ipcMain.handle('update-exegesis', async (e, d) => await exegesisManager.updateExegesis(d));
 ipcMain.handle('delete-exegesis', async (e, id) => await exegesisManager.deleteExegesis(id));
+
+ipcMain.handle('load-partial-html', async (event, relativePath) => {
+  const rendererDir = path.join(__dirname, '../renderer');
+  const partialsDir = path.join(rendererDir, 'partials');
+  const fullPath = path.resolve(path.join(rendererDir, relativePath));
+
+  if (!fullPath.startsWith(partialsDir)) {
+    throw new Error(`Ruta no permitida: ${relativePath}`);
+  }
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(`Partial no encontrado: ${relativePath}`);
+  }
+
+  return fs.readFileSync(fullPath, 'utf8');
+});
 
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+    loadPartialHtml: (relativePath) => ipcRenderer.invoke('load-partial-html', relativePath),
         // Ventana Custom
     windowMinimize: () => ipcRenderer.invoke('window-minimize'),
     windowMaximize: () => ipcRenderer.invoke('window-maximize'),

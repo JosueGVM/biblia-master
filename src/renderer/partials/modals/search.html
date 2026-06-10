@@ -1,0 +1,31 @@
+<div id="search-modal" class="modal-overlay hidden">
+    <div id="search-card">
+        
+        <div id="search-header-box">
+            <input type="text" id="search-input" placeholder="Buscar palabra exacta...">
+            <button id="search-mode-toggle" class="search-mode-btn" title="Buscar en todas las versiones">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Activas</span>
+            </button>
+            <button id="btn-close-search" class="close-x">✕</button>
+        </div>
+        
+        <div id="search-status-bar">
+            <h2 id="search-title-display">Resultados</h2>
+            <span id="results-count">0 encontrados</span>
+        </div>
+        
+        <div id="search-filters-bar" class="hidden">
+            <div id="search-filters-scroll">
+                <!-- Filtros generados dinámicamente -->
+            </div>
+        </div>
+        
+        <div id="results-list"></div>
+    </div>
+</div>

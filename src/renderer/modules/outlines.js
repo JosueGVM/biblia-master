@@ -413,47 +413,43 @@
     }
 }
 
+// ============================================
+// Eventos de la pantalla (llamar después de loadPartials)
+// ============================================
+export function initOutlineEvents() {
+  document.getElementById('btn-close-outlines').onclick = closeOutlinesScreen;
+  document.getElementById('btn-back-outlines').onclick = loadOutlinesList;
+  document.getElementById('btn-save-outline').onclick = saveCurrentOutline;
+  document.getElementById('btn-export-outline-pdf').onclick = exportOutlineToPdf;
 
-    // Eventos de la pantalla
-    document.getElementById('btn-close-outlines').onclick = closeOutlinesScreen;
-    document.getElementById('btn-back-outlines').onclick = loadOutlinesList;
-    document.getElementById('btn-save-outline').onclick = saveCurrentOutline;
+  document.getElementById('btn-new-outline').onclick = () => {
+    showOutlinesView('type');
+  };
 
+  document.getElementById('btn-cancel-type').onclick = () => {
+    showOutlinesView('list');
+  };
 
-    document.getElementById('btn-new-outline').onclick = () => {
-        showOutlinesView('type');
-    };
+  document.querySelectorAll('.type-option').forEach(opt => {
+    opt.onclick = () => openOutlineEditor(opt.dataset.type);
+  });
 
+  document.getElementById('btn-add-point-full').onclick = () => {
+    const count = document.getElementById('points-list-full').querySelectorAll('.point-item').length;
+    addPointToDOM('full', count + 1);
+  };
 
-    document.getElementById('btn-cancel-type').onclick = () => {
-        showOutlinesView('list');
-    };
-
-
-    document.querySelectorAll('.type-option').forEach(opt => {
-        opt.onclick = () => openOutlineEditor(opt.dataset.type);
-    });
-
-
-    document.getElementById('btn-add-point-full').onclick = () => {
-        const count = document.getElementById('points-list-full').querySelectorAll('.point-item').length;
-        addPointToDOM('full', count + 1);
-    };
-
-
-    document.getElementById('btn-add-point-simple').onclick = () => {
-        const count = document.getElementById('points-list-simple').querySelectorAll('.point-item').length;
-        addPointToDOM('simple', count + 1);
-    };
-
-
-    document.getElementById('btn-export-outline-pdf').onclick = exportOutlineToPdf;
+  document.getElementById('btn-add-point-simple').onclick = () => {
+    const count = document.getElementById('points-list-simple').querySelectorAll('.point-item').length;
+    addPointToDOM('simple', count + 1);
+  };
+}
 
 export {
-    openOutlinesScreen,
-    closeOutlinesScreen,
-    loadOutlinesList,
-    saveCurrentOutline,
-    openOutlineEditor,
-    exportOutlineToPdf
-}
+  openOutlinesScreen,
+  closeOutlinesScreen,
+  loadOutlinesList,
+  saveCurrentOutline,
+  openOutlineEditor,
+  exportOutlineToPdf,
+};

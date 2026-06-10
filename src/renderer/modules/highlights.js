@@ -18,9 +18,9 @@ export async function loadHighlights() {
             div.style.borderLeft = `4px solid ${h.color}`;
             div.dataset.color = h.color;
             div.innerHTML = `
-                <div class="highlight-color-dot" style="background:${h.color}"></div>
                 <div class="highlight-body">
-                    <span class="highlight-ref">${h.book_name} ${h.chapter}:${h.verse_number} · ${h.version}</span>
+                    <span class="highlight-ref">${h.book_name} ${h.chapter}:${h.verse_number} · </span>
+                    <span class="highlight-ref-version"> ${h.version}</span>
                 </div>
                 <div class="item-footer-actions">
                     <button class="btn-small-action btn-hl-ir">📖 IR</button>

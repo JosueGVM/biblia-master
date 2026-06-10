@@ -726,7 +726,7 @@ button, select, .clickable-title, .book-item, .group-header, .theme-dot, .verse,
 }
 
 .highlight-item {
-    padding: 14px 16px; border-bottom: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border); border-radius: 15px;
     margin-bottom: 10px; transition: all 0.2s; display: flex; flex-direction: column; gap: 6px;
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "codex-viewer",
-  "version": "1.7.3",
+  "version": "1.7.5",
   "description": "Lector de Biblia Personalizado y Multiversión",
   "main": "src/main/main.js",
   "author": "JosueGVM",

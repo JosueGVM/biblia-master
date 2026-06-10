@@ -1,0 +1,207 @@
+<!-- ✨ PANTALLA DE EXÉGESIS -->
+<div id="exegesis-screen" class="fullscreen-overlay hidden">
+
+    <!-- VISTA: LISTA -->
+    <div id="exegesis-list-view">
+        <div id="exegesis-list-header">
+            <h1>📚 Análisis Exegéticos</h1>
+            <div id="exegesis-header-actions">
+                <button id="btn-new-exegesis" class="btn-primary" style="margin-top:0; width:auto; padding: 10px 20px;">+ Nuevo Análisis</button>
+                <button id="btn-close-exegesis" class="close-x" style="width:36px; height:36px; font-size:1rem;">✕</button>
+            </div>
+        </div>
+        <div id="exegesis-grid"></div>
+    </div>
+
+    <!-- VISTA: EDITOR -->
+    <div id="exegesis-editor-view" class="hidden">
+        <div id="exegesis-editor-header">
+            <button class="btn-open-floating-reader btn-small-action" title="Lector flotante">📖 Lector</button>
+            <button id="btn-back-exegesis" class="btn-small-action">← Volver</button>
+            <input type="text" id="exegesis-title-input" placeholder="Título del análisis..." class="outline-title-input">
+            <input type="text" id="exegesis-passage-input" placeholder="Pasaje (ej: Juan 3:1-21)" class="outline-input" style="width: 200px;">
+            <div id="exegesis-header-actions">
+                <button id="btn-export-exegesis-pdf" class="btn-small-action">📄 Exportar PDF</button>
+                <button id="btn-save-exegesis" class="btn-primary" style="margin-top:0; width:auto; padding: 8px 20px;">Guardar</button>
+            </div>
+        </div>
+    
+        <div id="exegesis-form">
+        
+            <!-- SECCIÓN 1 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">1</span>
+                    Introducción y Delimitación
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-field">
+                        <label class="outline-label">Delimitación del texto</label>
+                        <p class="field-hint">Define dónde empieza y termina tu pasaje</p>
+                        <textarea class="outline-textarea" id="ex-delimitacion"></textarea>
+                    </div>
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Propósito</label>
+                            <p class="field-hint">¿Por qué elegiste este fragmento?</p>
+                            <textarea class="outline-textarea" id="ex-proposito"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Declaración de Tesis</label>
+                            <p class="field-hint">Mensaje central en una oración</p>
+                            <textarea class="outline-textarea" id="ex-tesis"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 2 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">2</span>
+                    Contexto Histórico y Cultural
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-field">
+                        <label class="outline-label">Autoría</label>
+                        <p class="field-hint">¿Quién escribió el texto y a quién iba dirigido?</p>
+                        <textarea class="outline-textarea" id="ex-autoria"></textarea>
+                    </div>
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Fecha y Lugar</label>
+                            <p class="field-hint">Momento histórico y situación geográfica</p>
+                            <textarea class="outline-textarea" id="ex-fecha-lugar"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Propósito Original</label>
+                            <p class="field-hint">¿Por qué escribió el autor en ese momento?</p>
+                            <textarea class="outline-textarea" id="ex-proposito-original"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 3 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">3</span>
+                    Contexto Literario
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-fields-row three-col">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Género</label>
+                            <p class="field-hint">Poesía, ley, carta, narrativa...</p>
+                            <textarea class="outline-textarea" id="ex-genero"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Relación con el libro</label>
+                            <p class="field-hint">¿Cómo encaja dentro del libro completo?</p>
+                            <textarea class="outline-textarea" id="ex-relacion"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Estructura</label>
+                            <p class="field-hint">Subdivisiones o cambios temáticos</p>
+                            <textarea class="outline-textarea" id="ex-estructura"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 4 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">4</span>
+                    Análisis Gramatical y Léxico
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-field">
+                        <label class="outline-label">Análisis de Palabras</label>
+                        <p class="field-hint">Términos originales importantes y sus usos</p>
+                        <textarea class="outline-textarea tall" id="ex-analisis-palabras"></textarea>
+                    </div>
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Gramática</label>
+                            <p class="field-hint">Verbos, tiempos y estructuras clave</p>
+                            <textarea class="outline-textarea" id="ex-gramatica"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Comparación de Traducciones</label>
+                            <p class="field-hint">Diferencias clave entre versiones</p>
+                            <textarea class="outline-textarea" id="ex-traduccion"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 5 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">5</span>
+                    Significado Teológico
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Enseñanza Original</label>
+                            <p class="field-hint">¿Qué significaba para su audiencia inicial?</p>
+                            <textarea class="outline-textarea tall" id="ex-ensenanza-original"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Mensaje Central</label>
+                            <p class="field-hint">Verdades teológicas universales</p>
+                            <textarea class="outline-textarea tall" id="ex-mensaje-central"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 6 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">6</span>
+                    Aplicación Contemporánea
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Relevancia Actual</label>
+                            <p class="field-hint">Conexión con la vida y sociedad moderna</p>
+                            <textarea class="outline-textarea tall" id="ex-relevancia"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Ejemplos Prácticos</label>
+                            <p class="field-hint">Formas concretas de vivir esta enseñanza</p>
+                            <textarea class="outline-textarea tall" id="ex-ejemplos"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- SECCIÓN 7 -->
+            <div class="exegesis-section">
+                <div class="exegesis-section-title">
+                    <span class="exegesis-section-num">7</span>
+                    Conclusión
+                </div>
+                <div class="exegesis-fields">
+                    <div class="exegesis-fields-row">
+                        <div class="exegesis-field">
+                            <label class="outline-label">Resumen</label>
+                            <p class="field-hint">Hallazgos más importantes de la investigación</p>
+                            <textarea class="outline-textarea tall" id="ex-resumen"></textarea>
+                        </div>
+                        <div class="exegesis-field">
+                            <label class="outline-label">Reflexión Final</label>
+                            <p class="field-hint">Impacto duradero del pasaje</p>
+                            <textarea class="outline-textarea tall" id="ex-reflexion"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </div>
+    </div>
+</div>

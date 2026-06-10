@@ -255,18 +255,18 @@
         }
     }
 
+export function initExegesisEvents() {
+  document.getElementById('btn-close-exegesis').onclick = closeExegesisScreen;
+  document.getElementById('btn-back-exegesis').onclick = loadExegesisList;
+  document.getElementById('btn-save-exegesis').onclick = saveCurrentExegesis;
+  document.getElementById('btn-export-exegesis-pdf').onclick = exportExegesisToPdf;
+  document.getElementById('btn-new-exegesis').onclick = () => openExegesisEditor();
+}
 
-    // Eventos
-    document.getElementById('btn-close-exegesis').onclick = closeExegesisScreen;
-    document.getElementById('btn-back-exegesis').onclick = loadExegesisList;
-    document.getElementById('btn-save-exegesis').onclick = saveCurrentExegesis;
-    document.getElementById('btn-export-exegesis-pdf').onclick = exportExegesisToPdf;
-    document.getElementById('btn-new-exegesis').onclick = () => openExegesisEditor();
-
-export { 
-    openExegesisScreen, 
-    closeExegesisScreen, 
-    loadExegesisList, 
-    saveCurrentExegesis, 
-    exportExegesisToPdf 
+export {
+  openExegesisScreen,
+  closeExegesisScreen,
+  loadExegesisList,
+  saveCurrentExegesis,
+  exportExegesisToPdf
 };

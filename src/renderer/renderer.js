@@ -9,6 +9,7 @@ import { loadAppSettings, setupTooltips } from './modules/settings.js';
 import { openOutlinesScreen } from './modules/outlines.js';
 import { openExegesisScreen } from './modules/exegesis.js';
 import { openFloatingReader, syncWithMain, initFloatingReader } from './modules/floating-reader.js';
+import { loadPartials } from './modules/load-partials.js';
 
 // ============================================
 // ESTADO GLOBAL — exportado para módulos
@@ -40,13 +41,30 @@ export const chapterCounts = { "Génesis": 50, "Éxodo": 40, "Levítico": 27, "N
 // INIT
 // ============================================
 async function init() {
-    allAvailableVersions = await window.api.getVersions();
-    loadAppSettings();
-    setupStaticEventListeners();
-    if (activeVersions.length === 0) showStartUpSelector();
-    else loadContent();
-    setupTooltips();
-    initFloatingReader();
+  // 1. Primero el DOM de todos los partials
+  await loadPartials();
+
+  // 2. Datos y preferencias
+  allAvailableVersions = await window.api.getVersions();
+  loadAppSettings();
+
+  // 3. Eventos (requieren que el HTML ya exista)
+  setupStaticEventListeners();
+
+  // 4. Módulos que crean UI propia
+  setupTooltips();
+  initFloatingReader();
+
+  // 5. Módulos que registran eventos al final de su archivo
+  //    (ver nota al final de este mensaje)
+  const { initExegesisEvents } = await import('./modules/exegesis.js');
+  const { initOutlineEvents } = await import('./modules/outlines.js');
+  initExegesisEvents();
+  initOutlineEvents();
+
+  // 6. Arranque del lector
+  if (activeVersions.length === 0) showStartUpSelector();
+  else loadContent();
 }
 
 function showStartUpSelector() {
@@ -240,10 +258,11 @@ function setupStaticEventListeners() {
     document.querySelectorAll('.btn-open-floating-reader').forEach(btn => {
     btn.onclick = () => openFloatingReader(); 
     });
-}
-
+        //botones para minimizar, maximizar y cerrar ventana
     document.getElementById('btn-minimize').onclick = () => window.api.windowMinimize();
     document.getElementById('btn-maximize').onclick = () => window.api.windowMaximize();
     document.getElementById('btn-close').onclick = () => window.api.windowClose();
+
+}
 
 window.addEventListener('DOMContentLoaded', init);

@@ -1,0 +1,26 @@
+<div id="settings-modal" class="modal-overlay hidden">
+    <div id="settings-content">
+        <h3>Apariencia</h3>
+        <div class="setting-item">
+            <label>Tamaño letra: <span id="font-size-value">18px</span></label>
+            <input type="range" id="font-size-slider" min="14" max="40" value="18">
+        </div>
+        <div class="setting-item">
+            <label>Tipografía</label>
+            <select id="font-family-select" class="custom-select">
+                <option value="'Segoe UI', sans-serif">Moderna (Sans)</option>
+                <option value="'Georgia', serif">Clásica (Serif)</option>
+                <option value="'Charter', serif">Elegante (Charter)</option>
+            </select>
+        </div>
+        <div class="setting-item">
+            <label>Tema</label>
+            <div id="theme-selector-row">
+                <div class="theme-dot light" data-theme="theme-light"></div>
+                <div class="theme-dot dark" data-theme="theme-dark"></div>
+                <div class="theme-dot sepia" data-theme="theme-sepia"></div>
+            </div>
+        </div>
+        <button id="close-settings" class="btn-primary">Listo</button>
+    </div>
+</div>
